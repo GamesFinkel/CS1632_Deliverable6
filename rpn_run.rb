@@ -93,7 +93,7 @@ class RPN
 
   def print_var(token)
     var = token.split(' ')
-    x = get_var(var[1])
+    x = get_var(var[1]) unless var[1].to_i.is_a? Integer
     puts x.value unless x == false
   end
 
