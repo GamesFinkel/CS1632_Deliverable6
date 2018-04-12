@@ -3,28 +3,32 @@ require_relative 'variables'
 class RPN
 
   attr_accessor :variables
+  attr_accessor :REPLmode
+  attr_accessor :line
 
   def initialize
     @variables = []
+    @REPLmode
+    @line = 0 
   end
 
   def start file
     if(file == ' ')
       puts 'No file'
-      file_input = false
+      @REPLmode = false
       text = ' '
     else
-      file_input = true
+      @REPLmode = true
       text = open_file file 
       #puts text
     end
-    calculations text, file_input
+    calculations text
   end
 
   # Tokens shall be numbers, variable names, operators, or one of the keywords QUIT, LET, or PRINT.
   def valid_token(token)
     return false unless keyword token, false
-    return true
+    true
   end
   
   def keyword token, test
@@ -39,34 +43,33 @@ class RPN
       return true if test
       quit
     else
-      return false
+      false
     end
-    return true
+      true
   end
 
-  def open_file file
+  def open_file(file)
     text = []
     File.open(file, "r") do |f|
       f.each_line do |line|
         text << line
       end
     end
-    return text
+    text
   end
 
-  def calculations(text, file_input)
-    count = 0
-    token = split_line text, count if file_input
-    token = gets unless file_input
+  def calculations(text)
+    token = split_line text, @line if @REPLmode
+    token = gets unless @REPLmode
     while(valid_token token)
-      token = split_line text, count if file_input
-      token = gets unless file_input
-      if(file_input)
-        exit if count == text.count
+      token = split_line text, @line if @REPLmode
+      token = gets unless @REPLmode
+      if(@REPLmode)
+        exit if @line == text.count
       end
-      count = count + 1     
+      @line = @line + 1
     end
-    print "Invalid token at line #{count}\n"
+    print "Keyword didn't start line #{@line}\n"
   end
 
   def split_line(text, line)
@@ -79,7 +82,7 @@ class RPN
     # var[2] = value
     var = token.split(" ")
     #return false unless letter var[1]
-    #return false unless var[2].is_a? Integer
+    raise "Not an integer at line #{@line}" unless var[2].to_i.is_a? Integer
     variable = Variables.new var[1].downcase, var[2] 
     @variables << variable
   end
@@ -89,19 +92,19 @@ class RPN
   end
 
   def print_var(token)
-    var = token.split(" ")
-    raise "Too many arguments" if var.count >= 3
-    raise "Not enough arguments" if var.count <= 2
-    val = get_var(var[1])
-    raise "Unable to print variable that does not exist" if val == false
-    puts val unless val == false
+    var = token.split(' ')
+    x = get_var(var[1])
+    puts x.value unless x == false
   end
 
   def get_var variable
-    @variables.each {|x| 
-      return x.value if (x.var).casecmp(variable)
-    }
-    return false
+    @variables.each | x |
+      if x.var == variable.downcase
+        return x
+      end
+    raise "Variable not initialized at line #{@line}" if @REPLmode
+    puts "Variable not initialized at line #{@line}" 
+    false
   end
 
   def quit
