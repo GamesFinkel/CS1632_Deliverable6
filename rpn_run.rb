@@ -54,12 +54,26 @@ class RPN
   def calculations(text)
     token = split_line text, @line unless @repl_mode
     token = gets if @repl_mode
-    while valid_token token
+    while true
+      if stack_check token
+        exit(3) unless @repl_mode
+      else
+        valid_token token
+      end
       token = split_line text, @line unless @repl_mode
       token = gets if @repl_mode
       end_line text.count unless @repl_mode
       @line += 1
     end
+  end
+
+  def stack_check(token)
+    var = token.split(' ')
+    if var.count > 4
+      puts "Line #{@line}: #{var.count} elements in stack after evaluation" 
+      return true
+    end
+    false
   end
 
   def end_line(count)
@@ -75,8 +89,8 @@ class RPN
     # var[1] = variable
     # var[2] = value
     var = token.split(' ')
-    raise "Variable not a letter" if (letter var[1]).nil?
-    raise "Not an integer at line #{@line}" unless var[2].to_i.is_a? Integer
+    raise "Line #{@line}: Variable not a letter" if (letter var[1]).nil?
+    raise "Line #{@line}: Not an integer" unless var[2].to_i.is_a? Integer
     variable = Variables.new var[1].downcase, var[2]
     @variables << variable
   end
@@ -101,7 +115,8 @@ class RPN
   def get_var(variable)
     @variables.each { |x| return x if x.var == variable.downcase }
    # raise "Variable not initialized at line #{@line}" unless @repl_mode
-    puts "Variable not initialized at line #{@line}"
+    raise "Line #{@line}: Variable not initialized" unless @repl_mode
+    puts "Line #{@line}: Variable not initialized" if @repl_mode
     false
   end
 
