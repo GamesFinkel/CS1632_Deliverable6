@@ -1,26 +1,10 @@
-require_relative 'variables'
-require_relative 'repl_mode'
-# RPN decoder class
-class RPN
+class REPL
   attr_accessor :variables
   attr_accessor :line
 
   def initialize
     @variables = []
-    @repl_mode = true
-    @line = 0
-  end
-
-  def start(file)
-    if file == ' '
-      puts 'REPL mode'
-      c = REPL.new
-      c.calculations
-    else
-      @repl_mode = false
-      text = open_file file
-      calculations text
-    end
+    @line = 1
   end
 
   def valid_token(token)
@@ -28,7 +12,7 @@ class RPN
     true
   end
 
-  def keyword(token)
+ def keyword(token)
     if token.split.first.casecmp('print').zero?
       print_line token
     elsif token.split.first.casecmp('let').zero?
@@ -36,31 +20,22 @@ class RPN
     elsif token.split.first.casecmp('quit').zero?
       quit
     else
-      raise "Keyword didn't start line #{@line + 1}\n"
+      raise "Keyword didn't start line #{@line}\n"
     end
     true
   end
 
-  def open_file(file)
-    text = []
-    File.open(file, 'r') do |f|
-      f.each_line do |line|
-        text << line
-      end
-    end
-    text
-  end
-
-  def calculations(text)
-    token = split_line text, @line 
+  def calculations
+  	print '> '
+    token = gets
     while true
       if stack_check token
-        exit(3) 
+        puts "Line #{@line}: #{var.count} elements in stack after evaluation"
       else
+      	print '> '
         valid_token token
       end
-      token = split_line text, @line
-      end_line text.count
+      token = gets
       @line += 1
     end
   end
@@ -68,14 +43,9 @@ class RPN
   def stack_check(token)
     var = token.split(' ')
     if var.count > 4
-      puts "Line #{@line + 1}: #{var.count} elements in stack after evaluation"
       return true
     end
     false
-  end
-
-  def end_line(count)
-    quit if @line == count
   end
 
   def split_line(text, line)
@@ -83,13 +53,13 @@ class RPN
   end
 
   def let_var(token)
-    puts 'let'
     var = token.split(' ')
-    puts var[1]
-    raise "Line #{@line + 1}: Variable not a letter" if (letter var[1]).nil?
-    raise "Line #{@line + 1}: Not an integer" unless var[2].to_i.is_a? Integer
+    raise "Line #{@line}: Variable not a letter" if (letter var[1]).nil?
+    raise "Line #{@line}: Not an integer" unless var[2].to_i.is_a? Integer
+    var[2] = math token if var.count > 3
     variable = Variables.new var[1].downcase, var[2]
     @variables << variable
+    puts var[2]
   end
 
   def letter(var)
@@ -110,10 +80,9 @@ class RPN
   end
 
   def get_var(variable)
-    @variables.each { |x| 
-      puts x.var
-      return x if x.var == variable.downcase }
-    # raise "Line #{@line}: Variable not initialized"
+    @variables.each { |x| return x if x.var == variable.downcase }
+    puts "Line #{@line}: Variable not initialized" 
+    false
   end
 
   def math(token)
@@ -153,4 +122,5 @@ class RPN
   def quit
     exit
   end
+
 end
