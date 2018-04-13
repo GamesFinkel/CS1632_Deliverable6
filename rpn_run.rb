@@ -30,7 +30,7 @@ class RPN
 
   def keyword(token)
     if token.split.first.casecmp('print').zero?
-      print_var token
+      print_line token
     elsif token.split.first.casecmp('let').zero?
       let_var token
     elsif token.split.first.casecmp('quit').zero?
@@ -82,17 +82,19 @@ class RPN
   end
 
   def letter(var)
-    var =~ /[[:alpha:]]/
+    var == /[[:alpha:]]/
+  end
+
+  def print_line(token)
+    var = token.split(' ')
+    puts math token if var.count > 3
+    print_var token if var.count == 2
   end
 
   def print_var(token)
     var = token.split(' ')
-    if var.count > 3
-      math var
-    end    
-    get_var var[1] unless letter var[1].nil?
     puts var[2] unless var[2].nil?
-    x = get_var(var[1]) if var[1].to_i.is_a? Integer
+    x = get_var(var[1]) if var[1].to_i.is_a? Integer #&& unless letter var[1].nil?
     puts x.value unless x == false
   end
 
@@ -103,30 +105,33 @@ class RPN
     false
   end
 
-  def math(var)
-    val1 = var[1].to_i if (letter var[1]).nil?
-    val2 = var[2].to_i if (letter var[2]).nil?
+  def math(token)
+    var = token.split(' ')
+    var[1] = (get_var var[1]).value unless letter var[1].nil?
+    var[2] = (get_var var[2]).value unless letter var[2].nil?
+    var[1]= var[1].to_i if (letter var[1]).nil?
+    var[2] = var[2].to_i if (letter var[2]).nil?
     operator = var[3] if is_operator var[3]
-    puts val1
-    puts val2
-    puts operator
-    addition var if operator.strcmp('+').zero?
-    subtraction var if operator.strcmp('-').zero?
-    multiplication var if operator.strcmp('*').zero?
-    division var if operator.strcmp('/').zero?
+    return addition var if operator == ('+')
+    return subtraction var if operator == ('-')
+    return multiplication var if operator == ('*')
+    return division var if operator == ('/')
   end
 
   def addition(var)
-    
+    var[1].to_i + var[2].to_i 
   end
 
   def subtraction(var)
+    var[1].to_i - var[2].to_i 
   end
 
   def multiplication(var)
+    var[1].to_i * var[2].to_i 
   end
 
   def division(var)
+    var[1].to_i / var[2].to_i 
   end
 
   def is_operator(var)
