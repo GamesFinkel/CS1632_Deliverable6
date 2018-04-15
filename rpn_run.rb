@@ -37,7 +37,7 @@ class RPN
     elsif token.split.first.casecmp('quit').zero?
       quit
     else
-      raise "Keyword didn't start line #{@line + 1}\n"
+      raise "Line #{@line + 1}: Unknown keyword #{token.split.first}\n"
     end
     true
   end
@@ -56,6 +56,7 @@ class RPN
     token = split_line text, @line 
     @line += 1
     while true
+      puts token
       if stack_check token
         exit(3) 
       else
@@ -69,7 +70,7 @@ class RPN
 
   def stack_check(token)
     var = token.split(' ')
-    if var.count > 4
+    if var.count > 5
       puts "Line #{@line + 1}: #{var.count} elements in stack after evaluation"
       return true
     end
@@ -88,9 +89,11 @@ class RPN
     puts 'let'
     var = token.split(' ')
     puts var[1]
-    raise "Line #{@line + 1}: Variable not a letter" unless letter var[1]
-    raise "Line #{@line + 1}: Not an integer" unless is_integer? var[2]
-    variable = Variables.new var[1].downcase, var[2]
+    value = var[2]
+    raise "Line #{@line + 1}: Variable #{var[1]} not a letter" unless letter var[1]
+    raise "Line #{@line + 1}: #{var[2]} is not an integer" unless is_integer? var[2]
+    value = math var.drop(2).join(' ') if var.count > 3
+    variable = Variables.new var[1].downcase, value
     @variables << variable
   end
 
@@ -124,7 +127,7 @@ class RPN
     @variables.each { |x| 
       #puts x.var
       return x if x.var == variable.downcase }
-    raise "Line #{@line}: Variable not initialized"
+    raise "Line #{@line}: Variable #{variable} not initialized"
   end
 
   # change so that input does not contain keyword or variable
@@ -147,6 +150,7 @@ class RPN
         val = subtraction stack.pop, stack.pop if operator == '-'
         val = multiplication stack.pop, stack.pop if operator == '*'
         val = division stack.pop, stack.pop if operator == '/'
+        raise "Error 2 at line #{@line +1}: Stack empty when trying to apply operator #{x}" if val = "Stack is empty"
       elsif letter x
         puts "letter #{x}"
         puts "#{get_var(x).value} value"

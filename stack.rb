@@ -22,7 +22,7 @@ module LinkedList
     alias_method :"<<", :push
 
     def pop
-      raise "Stack is empty" if is_empty?
+      return "Stack is empty" if is_empty?
       value = @first.value
       @first = @first.next_node
       @size -= 1
