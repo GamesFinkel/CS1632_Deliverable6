@@ -21,27 +21,28 @@ class RPN
 
   def keyword(token)
     first = token.split.first
-    quit 4, "Line #{@line}: Unknown keyword #{token.split.first}" unless @checker.keyword? first
+    return if @checker.integer? first
+    return [4, "Line #{@line}: Unknown keyword #{token.split.first}"] unless @checker.keyword? first
     print_line token if first.casecmp('print').zero?
     let_var token if first.casecmp('let').zero?
     quit 0, ' ' if first.casecmp('quit').zero?
+    true
   end
 
   def calculations(text)
-    token = split_line text, @line
+    token = text[@line]
     @line += 1
     while @line <= text.count
       out = @checker.check_line token
       quit 1, out << " at line #{@line}" unless out == true
       first = token.split.first
-      keyword token unless @checker.integer? first
-      token = split_line text, @line
+      quitter = keyword token
+      if(quitter != true)
+        quit quitter[0], quitter[1].to_s
+      end
+      token = text[@line]
       @line += 1
     end
-  end
-
-  def split_line(text, line)
-    text[line]
   end
 
   def let_var(token)
