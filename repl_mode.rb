@@ -29,7 +29,7 @@ end
  def keyword(token)
     if token.first.casecmp('print').zero?
       if token.count > 1
-      print_line token
+      print_line token[1,token.size-1]
       else
         errorCode 5,nil
       end
@@ -110,6 +110,8 @@ end
           else
             errorCode 5,nil
           end
+        else
+          print_line tok_array
         end
       end
       @line += 1
@@ -165,22 +167,25 @@ end
 
 
   def print_line(token)
-    print_var token if token.count == 2
-    puts math token if token.count > 3
+    print_var token if token.count == 1
+    if token.count > 1
+      result = math token
+      puts result if result != nil
+    end
   end
 
   def print_var(token)
-    if number token[1]
-      puts token[1]
-    elsif letter token[1]
-      if active token[1]
-        puts get_value token[1]
+    if number token[0]
+      puts token[0]
+    elsif letter token[0]
+      if active token[0]
+        puts get_value token[0]
       else
-        errorCode 1,token[1]
+        errorCode 1,token[0]
       end
     else
-      if !isOperator token[1]
-        errorCode 4,token[1]
+      if !isOperator token[0]
+        errorCode 4,token[0]
       else
         errorCode 5,nil
       end
@@ -200,7 +205,7 @@ end
   end
 
   def math(token)
-    val = 0
+    val = nil
     token.each do |x|
       type = getType(x)
       if type == "number"
@@ -228,28 +233,27 @@ end
         @stack << val
       end
     end
-    val = @stack.pop
-    if @stack.size != 0
+    if @stack.size > 1
       errorCode 3,@stack.size
       return nil
     end
-    val
+    @stack.pop
   end
 
   def addition(op1,op2)
-    op1.to_i+op2.to_i
+    op1+op2
   end
 
   def subtraction(op1,op2)
-    op1.to_i-op2.to_i
+    op1-op2
   end
 
   def division(op1,op2)
-    op1.to_i/op2.to_i
+    op1/op2
   end
 
   def multiplication(op1,op2)
-    op1.to_i*op2.to_i
+    op1*op2
   end
 
 

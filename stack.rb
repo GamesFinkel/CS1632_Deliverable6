@@ -16,7 +16,7 @@ module LinkedList
     end
 
     def push(value)
-      @first = Node.new(value, @first)
+      @first = Node.new(value.to_i, @first)
       @size = @size + 1
     end
     alias_method :"<<", :push
