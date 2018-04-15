@@ -1,6 +1,6 @@
 require_relative 'variables'
 require_relative 'repl_mode'
-require_relative 'stack'
+require_relative 'file_math'
 require_relative 'checker'
 # RPN decoder class
 class RPN
@@ -11,6 +11,7 @@ class RPN
     @variables = []
     @line = 0
     @checker = Checker.new
+    @math = FileMath.new
   end
 
   def start(file)
@@ -18,29 +19,20 @@ class RPN
     calculations text
   end
 
-  def valid_token(token)
-    return false unless keyword token
-    true
-  end
-
   def keyword(token)
-    if token.split.first.casecmp('print').zero?
-      print_line token
-    elsif token.split.first.casecmp('let').zero?
-      let_var token
-    elsif token.split.first.casecmp('quit').zero?
-      quit
-    else
-      raise "Line #{@line + 1}: Unknown keyword #{token.split.first}\n"
-    end
-    true
+    first = token.split.first
+    quit 4, "Line #{@line}: Unknown keyword #{token.split.first}" unless @checker.keyword? first
+    print_line token if first.casecmp('print').zero?
+    let_var token if first.casecmp('let').zero?
+    quit if first.casecmp('quit').zero?
   end
 
   def calculations(text)
     token = split_line text, @line
     @line += 1
     while @line <= text.count
-      valid_token token
+      first = token.split.first
+      keyword token unless @checker.integer? first
       token = split_line text, @line
       @line += 1
     end
@@ -52,10 +44,8 @@ class RPN
 
   def let_var(token)
     var = token.split(' ')
-    puts var[1]
     value = var[2]
-    raise "Line #{@line + 1}: Variable #{var[1]} not a letter" unless @checker.letter var[1]
-    raise "Line #{@line + 1}: #{var[2]} is not an integer" unless @checker.integer? var[2]
+    raise "Line #{@line}: Variable #{var[1]} is not a letter" unless @checker.letter var[1]
     value = math var.drop(2).join(' ') if var.count > 3
     variable = Variables.new var[1].downcase, value
     @variables << variable
@@ -63,8 +53,10 @@ class RPN
 
   def print_line(token)
     var = token.split(' ')
-    puts if @checker.integer? var[1]
-    puts "math: #{math token}" if var.count > 3
+    if @checker.integer? var[1] && var.count == 2
+       puts var[1]
+    end
+    puts "#{math token}" if var.count > 3
     if var.count == 2
        if @checker.integer? var[1]
          puts var[1] 
@@ -84,10 +76,9 @@ class RPN
   def get_var(variable)
     @variables.each { |x| 
       return x if x.var == variable.downcase }
-    raise "Line #{@line}: Variable #{variable} not initialized"
+    quit 1, "Line #{@line}: Variable #{variable} is not initialized"
   end
 
-  # change so that input does not contain keyword or variable
   def math(token)
     val = 0
     stack = LinkedList::Stack.new
@@ -96,47 +87,25 @@ class RPN
       if @checker.integer? x
         stack << x.to_i
       elsif @checker.keyword? x
-        puts "keyword"
-      elsif operator?(x)
+      elsif @math.operator?(x)
         operator = x
-        raise "Error 2: Stack empty when try to apply operator #{x}" if stack.empty?
-        val = addition stack.pop, stack.pop if operator == '+'
-        val = subtraction stack.pop, stack.pop if operator == '-'
-        val = multiplication stack.pop, stack.pop if operator == '*'
-        val = division stack.pop, stack.pop if operator == '/'
-        raise 'Error 2 at line #{@line + 1}: Stack empty when trying to apply operator #{x}' if val == "Stack is empty"
+        raise "Error 2 at line #{@line}:: Stack empty when try to apply operator #{x}" if stack.size < 2
+        val = @math.addition stack.pop, stack.pop if operator == '+'
+        val = @math.subtraction stack.pop, stack.pop if operator == '-'
+        val = @math.multiplication stack.pop, stack.pop if operator == '*'
+        val = @math.division stack.pop, stack.pop if operator == '/'
+        stack << val
+        quit 2, 'line #{@line}: Stack empty when trying to apply operator #{x}' if val == "Stack is empty"
       elsif @checker.letter x
         stack << get_var(x.downcase).value
       end
       }
-    raise 'Error 3: Stack has #{stack.size} elements after evaluation' unless stack.empty?
-    val
+    quit 3, "at line #{@line}: Stack has #{stack.size} elements after evaluation" if stack.size > 1
+    stack.pop
   end
 
-  def addition(operand1, operand2)
-    # puts operand1
-    # puts operand2
-    operand1.to_i + operand2.to_i
-  end
-
-  def subtraction(operand1, operand2)
-    operand1 - operand2
-  end
-
-  def multiplication(operand1, operand2)
-    operand1 * operand2
-  end
-
-  def division(operand1, operand2)
-    operand1 / operand2
-  end
-
-  def operator?(var)
-    ops = ['+', '-', '*', '/']
-    ops.include?(var)
-  end
-
-  def quit
-    exit
+  def quit(errcode, reason)
+    puts reason
+    exit(errcode)
   end
 end
