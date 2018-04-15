@@ -13,7 +13,6 @@ class RPN
 
   def start(file)
     if file == ' '
-      puts 'REPL mode'
       c = REPL.new
       c.calculations
     else
@@ -52,10 +51,10 @@ class RPN
   end
 
   def calculations(text)
-    token = split_line text, @line 
+    token = split_line text, @line
     while true
       if stack_check token
-        exit(3) 
+        exit(3)
       else
         valid_token token
       end
@@ -110,7 +109,7 @@ class RPN
   end
 
   def get_var(variable)
-    @variables.each { |x| 
+    @variables.each { |x|
       puts x.var
       return x if x.var == variable.downcase }
     # raise "Line #{@line}: Variable not initialized"
