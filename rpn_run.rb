@@ -142,6 +142,7 @@ class RPN
       elsif operator?(x)
         puts "#{x} is an operator"
         operator = x
+        raise "Error 2: Stack empty when try to apply operator #{x}" if stack.is_empty?
         val = addition stack.pop, stack.pop if operator == '+'
         val = subtraction stack.pop, stack.pop if operator == '-'
         val = multiplication stack.pop, stack.pop if operator == '*'
@@ -152,6 +153,7 @@ class RPN
         stack << get_var(x.downcase).value
       end
       }
+    raise "Error 3: Stack has #{stack.size} elements after evaluation" unless stack.is_empty?
     return val
 
     #var[1] = (get_var var[1]).value unless letter var[1].nil?
