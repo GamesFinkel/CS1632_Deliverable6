@@ -1,6 +1,7 @@
 require_relative 'variables'
 require_relative 'repl_mode'
 require_relative 'stack'
+require_relative 'checker'
 # RPN decoder class
 class RPN
   attr_accessor :variables
@@ -8,20 +9,13 @@ class RPN
 
   def initialize
     @variables = []
-    @repl_mode = true
     @line = 0
+    @checker = Checker.new
   end
 
   def start(file)
-    if file == ' '
-      puts 'REPL mode'
-      c = REPL.new
-      c.calculations
-    else
-      @repl_mode = false
-      text = open_file file
-      calculations text
-    end
+    text = @checker.open_file file
+    calculations text
   end
 
   def valid_token(token)
@@ -42,43 +36,14 @@ class RPN
     true
   end
 
-  def open_file(file)
-    text = []
-    File.open(file, 'r') do |f|
-      f.each_line do |line|
-        text << line
-      end
-    end
-    text
-  end
-
   def calculations(text)
-    token = split_line text, @line 
+    token = split_line text, @line
     @line += 1
-    while true
-      puts token
-      if stack_check token
-        exit(3) 
-      else
-        valid_token token
-      end
+    while @line <= text.count
+      valid_token token
       token = split_line text, @line
-      end_line text.count
       @line += 1
     end
-  end
-
-  def stack_check(token)
-    var = token.split(' ')
-    if var.count > 5
-      puts "Line #{@line + 1}: #{var.count} elements in stack after evaluation"
-      return true
-    end
-    false
-  end
-
-  def end_line(count)
-    quit if @line == count
   end
 
   def split_line(text, line)
@@ -86,29 +51,22 @@ class RPN
   end
 
   def let_var(token)
-    puts 'let'
     var = token.split(' ')
     puts var[1]
     value = var[2]
-    raise "Line #{@line + 1}: Variable #{var[1]} not a letter" unless letter var[1]
-    raise "Line #{@line + 1}: #{var[2]} is not an integer" unless is_integer? var[2]
+    raise "Line #{@line + 1}: Variable #{var[1]} not a letter" unless @checker.letter var[1]
+    raise "Line #{@line + 1}: #{var[2]} is not an integer" unless @checker.integer? var[2]
     value = math var.drop(2).join(' ') if var.count > 3
     variable = Variables.new var[1].downcase, value
     @variables << variable
   end
 
-  def letter(var)
-    var == /[[:alpha:]]/
-    return true unless var.nil?
-    return false if var.nil?
-  end
-
   def print_line(token)
     var = token.split(' ')
-    puts if is_integer? var[1]
+    puts if @checker.integer? var[1]
     puts "math: #{math token}" if var.count > 3
     if var.count == 2
-       if is_integer? var[1]
+       if @checker.integer? var[1]
          puts var[1] 
        else
          print_var token 
@@ -125,7 +83,6 @@ class RPN
 
   def get_var(variable)
     @variables.each { |x| 
-      #puts x.var
       return x if x.var == variable.downcase }
     raise "Line #{@line}: Variable #{variable} not initialized"
   end
@@ -136,41 +93,29 @@ class RPN
     stack = LinkedList::Stack.new
     var = token.split(' ')
     var.each {|x| 
-      # puts x
-      if is_integer? x
-        puts "#{x} is an integer on stack"
+      if @checker.integer? x
         stack << x.to_i
-      elsif keyword? x
+      elsif @checker.keyword? x
         puts "keyword"
       elsif operator?(x)
-        puts "#{x} is an operator"
         operator = x
-        raise "Error 2: Stack empty when try to apply operator #{x}" if stack.is_empty?
+        raise "Error 2: Stack empty when try to apply operator #{x}" if stack.empty?
         val = addition stack.pop, stack.pop if operator == '+'
         val = subtraction stack.pop, stack.pop if operator == '-'
         val = multiplication stack.pop, stack.pop if operator == '*'
         val = division stack.pop, stack.pop if operator == '/'
-        raise "Error 2 at line #{@line +1}: Stack empty when trying to apply operator #{x}" if val = "Stack is empty"
-      elsif letter x
-        puts "letter #{x}"
-        puts "#{get_var(x).value} value"
+        raise 'Error 2 at line #{@line + 1}: Stack empty when trying to apply operator #{x}' if val == "Stack is empty"
+      elsif @checker.letter x
         stack << get_var(x.downcase).value
       end
       }
-    raise "Error 3: Stack has #{stack.size} elements after evaluation" unless stack.is_empty?
-    return val
-
-    #var[1] = (get_var var[1]).value unless letter var[1].nil?
-    #var[2] = (get_var var[2]).value unless letter var[2].nil?
-    #var[1] = var[1].to_i if (letter var[1]).nil?
-    #var[2] = var[2].to_i if (letter var[2]).nil?
-    #operator = var[3] if operator? var[3]
+    raise 'Error 3: Stack has #{stack.size} elements after evaluation' unless stack.empty?
+    val
   end
 
   def addition(operand1, operand2)
-    puts "adding"
-    puts operand1
-    puts operand2
+    # puts operand1
+    # puts operand2
     operand1.to_i + operand2.to_i
   end
 
@@ -179,25 +124,16 @@ class RPN
   end
 
   def multiplication(operand1, operand2)
-     operand1 * operand2
+    operand1 * operand2
   end
 
   def division(operand1, operand2)
-     operand1 / operand2
+    operand1 / operand2
   end
 
   def operator?(var)
     ops = ['+', '-', '*', '/']
     ops.include?(var)
-  end
-
-  def is_integer?(x)
-    /\A[-+]?\d+\z/ === x
-  end
-
-  def keyword?(x)
-    keywordlist = ['LET', 'PRINT', 'QUIT']
-    keywordlist.include?(x)
   end
 
   def quit

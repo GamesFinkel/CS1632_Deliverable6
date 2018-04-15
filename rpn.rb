@@ -1,6 +1,9 @@
 require_relative 'rpn_run'
-file = ' '
-file = ARGV[0] if ARGV.count == 1
+if ARGV.count == 1
+  file = ARGV[0]
+  c = RPN.new
+  c.start file
+end
 
 if ARGV.count > 1
   File.open('myfile.out', 'w') { |file| file.truncate(0) }
@@ -15,5 +18,8 @@ if ARGV.count > 1
   file = 'myfile.out'
 end
 
-c = RPN.new
-c.start file
+if ARGV.count == 0
+   c = REPL.new
+   c.calculations
+end
+

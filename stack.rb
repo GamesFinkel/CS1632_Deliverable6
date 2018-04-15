@@ -1,6 +1,7 @@
 module LinkedList
+  # Node class to manage the stack
   class Node
-    attr_accessor :value, :next_node, :size
+    attr_accessor :value, :next_node
 
     def initialize(value, next_node)
       @value = value
@@ -9,7 +10,9 @@ module LinkedList
     end
   end
 
+  # Stack class to manage the linked list for the math method
   class Stack
+    attr_accessor :size
     def initialize
       @first = nil
       @size = 0
@@ -17,24 +20,20 @@ module LinkedList
 
     def push(value)
       @first = Node.new(value, @first)
-      @size = @size + 1
+      @size += 1
     end
     alias_method :"<<", :push
 
     def pop
-      return "Stack is empty" if is_empty?
+      return 'Stack is empty' if empty?
       value = @first.value
       @first = @first.next_node
       @size -= 1
       value
     end
 
-    def is_empty?
+    def empty?
       @first.nil?
-    end
-
-    def size
-      @size
     end
   end
 end
