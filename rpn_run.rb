@@ -24,13 +24,14 @@ class RPN
     quit 4, "Line #{@line}: Unknown keyword #{token.split.first}" unless @checker.keyword? first
     print_line token if first.casecmp('print').zero?
     let_var token if first.casecmp('let').zero?
-    quit if first.casecmp('quit').zero?
+    quit 0, ' ' if first.casecmp('quit').zero?
   end
 
   def calculations(text)
     token = split_line text, @line
     @line += 1
     while @line <= text.count
+      quit 1, 'Keyword in the middle of line' unless @checker.lateWord token
       first = token.split.first
       keyword token unless @checker.integer? first
       token = split_line text, @line
@@ -45,7 +46,7 @@ class RPN
   def let_var(token)
     var = token.split(' ')
     value = var[2]
-    raise "Line #{@line}: Variable #{var[1]} is not a letter" unless @checker.letter var[1]
+    quit 1, "Line #{@line}: Variable #{var[1]} is not a letter" unless @checker.letter var[1]
     value = math var.drop(2).join(' ') if var.count > 3
     variable = Variables.new var[1].downcase, value
     @variables << variable
@@ -53,6 +54,7 @@ class RPN
 
   def print_line(token)
     var = token.split(' ')
+    quit 6, "Line #{line}: Incorrect number of arguments for print" if var.count == 3
     if @checker.integer? var[1] && var.count == 2
        puts var[1]
     end
@@ -75,7 +77,7 @@ class RPN
 
   def get_var(variable)
     @variables.each { |x| 
-      return x if x.var == variable.downcase }
+    return x if x.var == variable.downcase }
     quit 1, "Line #{@line}: Variable #{variable} is not initialized"
   end
 
@@ -89,18 +91,18 @@ class RPN
       elsif @checker.keyword? x
       elsif @math.operator?(x)
         operator = x
-        raise "Error 2 at line #{@line}:: Stack empty when try to apply operator #{x}" if stack.size < 2
+        quit 2, "Line #{@line}: Stack empty when try to apply operator #{x}" if stack.size < 2
         val = @math.addition stack.pop, stack.pop if operator == '+'
         val = @math.subtraction stack.pop, stack.pop if operator == '-'
         val = @math.multiplication stack.pop, stack.pop if operator == '*'
         val = @math.division stack.pop, stack.pop if operator == '/'
         stack << val
-        quit 2, 'line #{@line}: Stack empty when trying to apply operator #{x}' if val == "Stack is empty"
+        quit 2, 'Line #{@line}: Stack empty when trying to apply operator #{x}' if val == "Stack is empty"
       elsif @checker.letter x
         stack << get_var(x.downcase).value
       end
       }
-    quit 3, "at line #{@line}: Stack has #{stack.size} elements after evaluation" if stack.size > 1
+    quit 3, "Line #{@line}: Stack has #{stack.size} elements after evaluation" if stack.size > 1
     stack.pop
   end
 

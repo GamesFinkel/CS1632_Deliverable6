@@ -9,6 +9,7 @@ class Checker
   end
 
   def letter(var)
+  	return false if var.length > 1
     var = /[[:alpha:]]/
     return true unless var.nil?
     return false if var.nil?
@@ -23,4 +24,13 @@ class Checker
     end
     text
   end
+
+  def lateWord token
+  	var = token.split(' ')
+    var.drop(1).each do |x|
+      if keyword? x
+        return false
+      end
+  end
+end
 end
