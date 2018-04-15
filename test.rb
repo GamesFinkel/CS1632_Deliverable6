@@ -1,4 +1,3 @@
-LET g 40 40 +
-PRINT G
-PRINT poop
-PRINT 10 10 * 5 5 * 0 0 * + +
+LET d 5 50 50 50 50 50 + + + + +
+PRINT D
+PRINT 10 10 "

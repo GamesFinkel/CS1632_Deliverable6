@@ -10,9 +10,8 @@ class Checker
 
   def letter(var)
   	return false if var.length > 1
-    var = /[[:alpha:]]/
-    return true unless var.nil?
-    return false if var.nil?
+    alphabet = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+    alphabet.include?(var.downcase)
   end
 
   def open_file(file)
@@ -25,12 +24,22 @@ class Checker
     text
   end
 
-  def lateWord token
+  def check_line(token)
   	var = token.split(' ')
     var.drop(1).each do |x|
       if keyword? x
         return false
       end
+      if(!letter(x) && !operator?(x) && !integer?(x))
+      	return "Incorrect input #{x}"
+      end
+     end
+     true
+  end
+
+  def operator?(var)
+    ops = ['+', '-', '*', '/']
+    ops.include?(var)
   end
 end
-end
+

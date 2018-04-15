@@ -31,7 +31,8 @@ class RPN
     token = split_line text, @line
     @line += 1
     while @line <= text.count
-      quit 1, 'Keyword in the middle of line' unless @checker.lateWord token
+      out = @checker.check_line token
+      quit 1, out << " at line #{@line}" unless out == true
       first = token.split.first
       keyword token unless @checker.integer? first
       token = split_line text, @line
@@ -46,7 +47,7 @@ class RPN
   def let_var(token)
     var = token.split(' ')
     value = var[2]
-    quit 1, "Line #{@line}: Variable #{var[1]} is not a letter" unless @checker.letter var[1]
+    quit 1, "Line #{@line}: Variable #{var[1]} is not a letter" unless @checker.letter var[1].downcase
     value = math var.drop(2).join(' ') if var.count > 3
     variable = Variables.new var[1].downcase, value
     @variables << variable
@@ -89,7 +90,7 @@ class RPN
       if @checker.integer? x
         stack << x.to_i
       elsif @checker.keyword? x
-      elsif @math.operator?(x)
+      elsif @checker.operator?(x)
         operator = x
         quit 2, "Line #{@line}: Stack empty when try to apply operator #{x}" if stack.size < 2
         val = @math.addition stack.pop, stack.pop if operator == '+'
