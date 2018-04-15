@@ -7,6 +7,23 @@ class REPL
     @line = 1
   end
 
+def getType(token)
+  if isKeyword token
+    return "keyword"
+  elsif number token
+    return "number"
+  elsif letter token
+    if token.chomp.size == 1
+    return "variable"
+  else
+    return "word"
+  end
+  elsif isOperator token
+    return "operator"
+  errorCode 5,nil
+  end
+end
+
  def keyword(token)
     if token.first.casecmp('print').zero?
       if token.count > 1
@@ -34,15 +51,36 @@ class REPL
    false
  end
 
+  def lateWord token
+    if token.count <= 1
+      return false
+    end
+    token[1,token.size-1].each do |x|
+      if "word" == getType(x)
+        return true
+      elsif "keyword" == getType(x)
+        return true
+      end
+    end
+    return false
+  end
+
+
   def calculations
     while true
       print '> '
       token = gets
+
+      # Error if token only contains \n
       if token.size < 2
         errorCode 5,nil
-      else
+      end
+
+
       tok_array = token.split
-      if isKeyword tok_array.first
+      if lateWord tok_array
+        errorCode 5,nil
+      elsif isKeyword tok_array.first
         keyword tok_array
       elsif tok_array.count == 1
         if letter token
@@ -59,7 +97,6 @@ class REPL
           errorCode 5,nil
         end
       end
-    end
       @line += 1
     end
   end
@@ -84,7 +121,6 @@ class REPL
 
   def let_var(token)
     if !letter token[1]
-      puts "here"
       errorCode 5,nil
       return
     elsif token.count < 3
@@ -98,8 +134,12 @@ class REPL
         end
       end
       token[2] = math token if token.count > 3
+      if !active token[1]
       variable = Variables.new token[1].downcase, token[2]
       @variables << variable
+      else
+        change_value token[1],token[2]
+      end
       puts token[2]
     end
   end
@@ -133,6 +173,9 @@ class REPL
   def active(token)
     @variables.each{ |x| return true if x.var == token.downcase.chomp }
     false
+  end
+  def change_value(token,value)
+    @variables.each {|x| x.value = value if x.var == token.downcase.chomp}
   end
   def get_value(token)
     @variables.each {|x| return x.value if x.var == token.downcase.chomp}
