@@ -45,9 +45,8 @@ class RPN
     var = token.split(' ')
     value = var[2]
     @checker.quit @checker.error(1, @line, var[1]) unless @checker.letter var[1]
-    value = math var.drop(2).join(' ') if var.count > 3
-    return value unless @checker.integer? value
-    return false unless @checker.decimal? value
+    value = math var.drop(1).join(' ') if var.count > 3
+    # return false unless @checker.decimal? value
     variable = Variables.new var[1].downcase, value
     @variables << variable
     true
@@ -81,10 +80,9 @@ class RPN
   def math(token)
     stack = LinkedList::Stack.new
     var = token.split(' ')
-    var.each do |x|
+    var.drop(1).each do |x|
       if @checker.integer? x
         stack << x.to_i
-      elsif @checker.keyword? x
       elsif @checker.operator?(x)
         @checker.quit @checker.error(2, @line, x) if stack.size < 2
         stack << @math.do_math(stack.pop, stack.pop, x)

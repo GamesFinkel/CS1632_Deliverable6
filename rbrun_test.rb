@@ -17,7 +17,7 @@ class RPNRuntest < Minitest::Test
 
   def test_let_var_rpn
   	val = @rpn.let_var "LET a 30 30 +"
-  	assert_equal val, 60
+  	assert_equal val, true
   end
 
   #def test_let_var_invalid_rpn

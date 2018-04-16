@@ -11,12 +11,12 @@ class CheckTest < Minitest::Test
   end
 
   def test_addition
-  	val = @rpn.math "45 45 +"
+  	val = @rpn.math "PRINT 45 45 +"
   	assert_equal val, 90
   end
 
   def test_subtraction
-    val = @rpn.math "45 45 -"
+    val = @rpn.math "PRINT 45 45 -"
     assert_equal val, 0
   end
 
