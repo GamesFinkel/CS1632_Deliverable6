@@ -23,8 +23,4 @@ class FileMath
     operand2 / operand1
   end
 
-  def operator?(var)
-    ops = ['+', '-', '*', '/']
-    ops.include?(var)
-  end
 end
