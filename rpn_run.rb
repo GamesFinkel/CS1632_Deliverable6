@@ -4,6 +4,9 @@ require_relative 'stack'
 require_relative 'errorcodes'
 require_relative 'token'
 require_relative 'math'
+require_relative 'file_math'
+require_relative 'checker'
+require_relative 'active'
 # RPN decoder class
 class RPN
   attr_accessor :variables
@@ -11,74 +14,33 @@ class RPN
 
   def initialize
     @variables = []
-    @repl_mode = true
     @line = 0
+    @checker = Checker.new
+    @math = FileMath.new
   end
 
   def start(file)
-    if file == ' '
-      c = REPL.new
-      c.calculations
-    else
-      @repl_mode = false
-      text = open_file file
-      calculations text
-    end
-  end
-
-  def valid_token(token)
-    return false unless keyword token
-    true
+    text = @checker.open_file file
+    calculations text
   end
 
   def keyword(token)
-    if token.split.first.casecmp('print').zero?
-      print_line token
-    elsif token.split.first.casecmp('let').zero?
-      let_var token
-    elsif token.split.first.casecmp('quit').zero?
-      quit
-    else
-      raise "Keyword didn't start line #{@line + 1}\n"
-    end
-    true
-  end
-
-  def open_file(file)
-    text = []
-    File.open(file, 'r') do |f|
-      f.each_line do |line|
-        text << line
-      end
-    end
-    text
+    first = token.split.first
+    quit 4, "Line #{@line}: Unknown keyword #{token.split.first}" unless @checker.keyword? first
+    print_line token if first.casecmp('print').zero?
+    let_var token if first.casecmp('let').zero?
+    quit if first.casecmp('quit').zero?
   end
 
   def calculations(text)
     token = split_line text, @line
-    while true
-      if stack_check token
-        exit(3)
-      else
-        valid_token token
-      end
+    @line += 1
+    while @line <= text.count
+      first = token.split.first
+      keyword token unless @checker.integer? first
       token = split_line text, @line
-      end_line text.count
       @line += 1
     end
-  end
-
-  def stack_check(token)
-    var = token.split(' ')
-    if var.count > 4
-      puts "Line #{@line + 1}: #{var.count} elements in stack after evaluation"
-      return true
-    end
-    false
-  end
-
-  def end_line(count)
-    quit if @line == count
   end
 
   def split_line(text, line)
@@ -86,23 +48,27 @@ class RPN
   end
 
   def let_var(token)
-    puts 'let'
     var = token.split(' ')
-    puts var[1]
-    raise "Line #{@line + 1}: Variable not a letter" if (letter var[1]).nil?
-    raise "Line #{@line + 1}: Not an integer" unless var[2].to_i.is_a? Integer
-    variable = Variables.new var[1].downcase, var[2]
+    value = var[2]
+    raise "Line #{@line}: Variable #{var[1]} is not a letter" unless @checker.letter var[1]
+    value = math var.drop(2).join(' ') if var.count > 3
+    variable = Variables.new var[1].downcase, value
     @variables << variable
-  end
-
-  def letter(var)
-    var == /[[:alpha:]]/
   end
 
   def print_line(token)
     var = token.split(' ')
-    puts math token if var.count > 3
-    print_var token if var.count == 2
+    if @checker.integer? var[1] && var.count == 2
+       puts var[1]
+    end
+    puts "#{math token}" if var.count > 3
+    if var.count == 2
+       if @checker.integer? var[1]
+         puts var[1]
+       else
+         print_var token
+       end
+    end
   end
 
   def print_var(token)
@@ -114,46 +80,37 @@ class RPN
 
   def get_var(variable)
     @variables.each { |x|
-      puts x.var
       return x if x.var == variable.downcase }
-    # raise "Line #{@line}: Variable not initialized"
+    quit 1, "Line #{@line}: Variable #{variable} is not initialized"
   end
 
   def math(token)
+    val = 0
+    stack = LinkedList::Stack.new
     var = token.split(' ')
-    var[1] = (get_var var[1]).value unless letter var[1].nil?
-    var[2] = (get_var var[2]).value unless letter var[2].nil?
-    var[1] = var[1].to_i if (letter var[1]).nil?
-    var[2] = var[2].to_i if (letter var[2]).nil?
-    operator = var[3] if operator? var[3]
-    return addition var if operator == '+'
-    return subtraction var if operator == '-'
-    return multiplication var if operator == '*'
-    return division var if operator == '/'
+    var.each {|x|
+      if @checker.integer? x
+        stack << x.to_i
+      elsif @checker.keyword? x
+      elsif @math.operator?(x)
+        operator = x
+        raise "Error 2 at line #{@line}:: Stack empty when try to apply operator #{x}" if stack.size < 2
+        val = @math.addition stack.pop, stack.pop if operator == '+'
+        val = @math.subtraction stack.pop, stack.pop if operator == '-'
+        val = @math.multiplication stack.pop, stack.pop if operator == '*'
+        val = @math.division stack.pop, stack.pop if operator == '/'
+        stack << val
+        quit 2, 'line #{@line}: Stack empty when trying to apply operator #{x}' if val == "Stack is empty"
+      elsif @checker.letter x
+        stack << get_var(x.downcase).value
+      end
+      }
+    quit 3, "at line #{@line}: Stack has #{stack.size} elements after evaluation" if stack.size > 1
+    stack.pop
   end
 
-  def addition(var)
-    var[1].to_i + var[2].to_i
-  end
-
-  def subtraction(var)
-    var[1].to_i - var[2].to_i
-  end
-
-  def multiplication(var)
-    var[1].to_i * var[2].to_i
-  end
-
-  def division(var)
-    var[1].to_i / var[2].to_i
-  end
-
-  def operator?(var)
-    ops = ['+', '-', '*', '/']
-    ops.include?(var)
-  end
-
-  def quit
-    exit
+  def quit(errcode, reason)
+    puts reason
+    exit(errcode)
   end
 end

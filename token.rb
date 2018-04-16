@@ -12,6 +12,7 @@ class Token
   end
 
   def self.number?(var)
+    return true if var.is_a? Integer
     /\A[-+]?\d+\z/ === var.chomp
   end
 
@@ -34,7 +35,7 @@ class Token
   end
 
   def self.illegal?(var)
-    return true if var.size == 0
+    return true if var.size.zero?
     var.each do |x|
       return true if get_type(x) == 'illegal'
     end

@@ -1,7 +1,7 @@
 # Does all the math
-class MathClass
+class CALC
   @stack = nil
-  def self.math_calc(token, line)
+  def self.math(token, line)
     @stack = LinkedList::Stack.new
     token.each do |x|
       type = Token.get_type(x)
@@ -9,16 +9,16 @@ class MathClass
       return nil if val.nil?
       @stack << val
     end
-    puts error 3, line, @stack.size if @stack.size > 1
+    error 3, line, @stack.size if @stack.size > 1
     return @stack.pop if @stack.size == 1
     nil
   end
 
   def self.type_action(type, token, line)
     return token if type == 'number'
-    elsif type == 'operator'
+    if type == 'operator'
       return operation token unless @stack.size < 2
-      puts error 2, line, x
+      error 2, line, x
     end
     nil
   end

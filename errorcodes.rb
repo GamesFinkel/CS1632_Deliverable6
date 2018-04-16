@@ -1,9 +1,10 @@
 # Keep track of the error codes
 class Errorcode
   def self.error(var, line, problem)
-    return "Line #{line}: Could not evaluate expression" if var == 5
-    erc = self.new_error(var, problem)
-    "Line #{line}: #{erc}"
+    puts "Line #{line}: Could not evaluate expression" if var == 5
+    return if var == 5
+    erc = new_error(var, problem)
+    puts "Line #{line}: #{erc}"
   end
 
   def self.new_error(var, problem)
