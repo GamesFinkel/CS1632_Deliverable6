@@ -3,6 +3,10 @@ class Checker
     /\A[-+]?\d+\z/ === integer
   end
 
+  def decimal?(integer)
+     integer % 1 != 0
+  end
+
   def keyword?(word)
     keywordlist = %w[LET PRINT QUIT]
     keywordlist.include?(word)
@@ -31,7 +35,7 @@ class Checker
         return false
       end
       if(!letter(x) && !operator?(x) && !integer?(x))
-      	return "Incorrect input #{x}"
+      	return " incorrect input #{x}"
       end
      end
      true
@@ -40,6 +44,11 @@ class Checker
   def operator?(var)
     ops = ['+', '-', '*', '/']
     ops.include?(var)
+  end
+
+  def quit(input)
+    puts input[1]
+    exit(input[2].to_i)
   end
 end
 
