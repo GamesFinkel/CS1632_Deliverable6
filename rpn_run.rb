@@ -50,15 +50,13 @@ class RPN
     return false unless @checker.decimal? value
     variable = Variables.new var[1].downcase, value
     @variables << variable
-    return true
+    true
   end
 
   def print_line(token)
     var = token.split(' ')
     return [6, "Line #{line}: Incorrect number of arguments for print"] if var.count == 3
-    if @checker.integer? var[1] && var.count == 2
-       puts var[1]
-    end
+    puts var[1] if @checker.integer? var[1] && var.count == 2
     if var.count > 3
       val = math token
       return val unless val.is_a? Integer
@@ -66,9 +64,9 @@ class RPN
     end
     if var.count == 2
        if @checker.integer? var[1]
-         puts var[1] 
+         puts var[1]
        else
-        print_var token 
+         print_var token
        end
     end
     true
@@ -90,7 +88,7 @@ class RPN
     val = 0
     stack = LinkedList::Stack.new
     var = token.split(' ')
-    var.each do |x| 
+    var.each do |x|
       if @checker.integer? x
         stack << x.to_i
       elsif @checker.keyword? x
@@ -101,10 +99,10 @@ class RPN
         val = @math.subtraction stack.pop, stack.pop if operator == '-'
         val = @math.multiplication stack.pop, stack.pop if operator == '*'
         val = @math.division stack.pop, stack.pop if operator == '/'
-        stack << val 
-        return [2, 'Line #{@line}: Stack empty when trying to apply operator #{x}'] if val == "Stack is empty"
+        stack << val
+        return [2, "Line #{@line}: Stack empty when trying to apply operator #{x}"] if val == "Stack is empty"
       elsif @checker.letter x
-        stack << get_var(x.downcase).value 
+        stack << get_var(x.downcase).value
       end
     end
     return [3, "Line #{@line}: Stack has #{stack.size} elements after evaluation"] if stack.size > 1
