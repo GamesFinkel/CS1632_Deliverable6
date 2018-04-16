@@ -10,15 +10,15 @@ if ARGV.count > 1
   ARGV.each do |x|
     f1 = File.readlines(x)
     open('myfile.out', 'a') do |f|
-    f1.each do |q|
-      f.puts q
+      f1.each do |q|
+        f.puts q
+      end
+    end
+    file = 'myfile.out'
   end
 end
-  file = 'myfile.out'
-end
-end
-if ARGV.count == 0
-   c = REPL.new
-   c.calculations
-end
 
+if ARGV.count.zero?
+  c = REPL.new
+  c.calculations
+end
