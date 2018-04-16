@@ -51,4 +51,19 @@ class Checker
     puts input[1]
     exit(input[2].to_i)
   end
+
+  def error(errorcode, line, var)
+  case errorcode
+    when 1
+      [1,"Line #{line}: Variable #{var} is not initialized"]
+    when 2
+      [2, "Line #{line}: Operator #{var} applied to empty stack"]
+    when 3
+      [3, "Line #{line}: Stack has #{var} elements after evaluation"]
+    when 4
+      [4, "Line #{line}: Unknown keyword #{var}"]
+    when 5
+      [5, "Line #{line}: Could not evaluate expression"]
+    end
+  end
 end
