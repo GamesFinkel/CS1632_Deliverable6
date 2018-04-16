@@ -15,11 +15,11 @@ class Active
     variables.each { |x| return x.value if x.var == token.downcase.chomp }
   end
 
-  def self.all_active(variables, token)
+  def self.all_active(variables, line, token)
     token.each do |x|
       next unless Token.letter? x
       unless Active.active(variables, x)
-        Errorcode.error 1, @line, x
+        Errorcode.error 1, line, x
         return false
       end
     end

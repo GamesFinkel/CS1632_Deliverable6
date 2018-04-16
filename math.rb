@@ -24,7 +24,7 @@ class CALC
   end
 
   def self.error(number, line, problem)
-    ErrorCode.error number, line, problem
+    Errorcode.error number, line, problem
   end
 
   def self.operation(operator)

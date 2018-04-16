@@ -14,7 +14,7 @@ class REPL
   end
 
   def check(token)
-    Active.all_active(@vars, token)
+    Active.all_active(@vars, @lines, token)
   end
 
   def key_print(token)
@@ -23,6 +23,10 @@ class REPL
   end
 
   def key_let(token)
+    unless Token.letter? token[0]
+      Errorcode.error 5, @line, nil
+      return
+    end
     Errorcode.error 5, @line, nil unless token.count > 1
     let_var token if token.count > 1 && check(token[1, token.size - 1])
   end
@@ -66,16 +70,12 @@ class REPL
   end
 
   def let_var(token)
-    Errorcode.error 5, @line, nil unless Token.letter? token[0]
-    return unless Token.letter? token[0]
-    Errorcode.error 5, @line, nil if token.count < 2
-    return if token.count < 2
     if token.count == 2
       token[1] = Active.get_value(@vars, token[1]) if Token.letter? token[1]
     else
       token[1] = CALC.math Active.to_num(@vars, token[1, token.size - 1]), @line
-      return nil if token[1].nil?
     end
+    return nil if token[1].nil?
     if !Active.active(@vars, token[0])
       variable = Variables.new token[0].downcase, token[1].to_s
       @vars << variable
