@@ -85,7 +85,6 @@ class RPN
   end
 
   def math(token)
-    val = 0
     stack = LinkedList::Stack.new
     var = token.split(' ')
     var.each do |x|
@@ -93,14 +92,8 @@ class RPN
         stack << x.to_i
       elsif @checker.keyword? x
       elsif @checker.operator?(x)
-        operator = x
-        @checker.quit [2, "Line #{@line}: Stack empty when try to apply operator #{x}"] if stack.size < 2
-        val = @math.addition stack.pop, stack.pop if operator == '+'
-        val = @math.subtraction stack.pop, stack.pop if operator == '-'
-        val = @math.multiplication stack.pop, stack.pop if operator == '*'
-        val = @math.division stack.pop, stack.pop if operator == '/'
-        stack << val
-        return [2, "Line #{@line}: Stack empty when trying to apply operator #{x}"] if val == "Stack is empty"
+        return [2, "Line #{@line}: Stack empty when try to apply operator #{x}"] if stack.size < 2
+        stack << @math.do_math(stack.pop, stack.pop, x)
       elsif @checker.letter x
         stack << get_var(x.downcase).value
       end

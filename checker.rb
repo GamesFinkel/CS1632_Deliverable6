@@ -47,8 +47,8 @@ class Checker
   end
 
   def quit(input)
+    exit(0) if input == nil
     puts input[1]
     exit(input[2].to_i)
   end
 end
-
