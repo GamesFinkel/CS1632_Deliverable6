@@ -14,7 +14,7 @@ class REPL
   end
 
   def check(token)
-    Active.all_active(@vars, @lines, token)
+    Active.all_active(@vars, @line, token)
   end
 
   def key_print(token)
@@ -64,7 +64,7 @@ class REPL
           Errorcode.error 5, @line, nil
         end
       else
-        print_line tok_array
+        print_line tok_array if check tok_array
       end
     end
   end

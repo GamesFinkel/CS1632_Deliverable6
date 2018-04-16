@@ -18,7 +18,7 @@ class CALC
     return token if type == 'number'
     if type == 'operator'
       return operation token unless @stack.size < 2
-      error 2, line, x
+      error 2, line, token
     end
     nil
   end
