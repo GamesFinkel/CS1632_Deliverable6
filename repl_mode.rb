@@ -1,281 +1,146 @@
+# REPL
 class REPL
   attr_accessor :variables
   attr_accessor :line
-  attr_accessor :stack
   def initialize
     @variables = []
-    @line = 1
-    @stack = LinkedList::Stack.new
+    @line = 0
   end
 
-def getType(token)
-  if number token
-    return "number"
-  elsif isKeyword token
-    return "keyword"
-  elsif letter token
-    if token.chomp.size == 1
-      return "variable"
-    else
-      return "word"
-    end
-  elsif isOperator token
-    return "operator"
-  else
-    return "illegal"
-  end
-end
-
- def keyword(token)
-    if token.first.casecmp('print').zero?
-      if token.count > 1
-      print_line token[1,token.size-1]
-      else
-        errorCode 5,nil
-      end
-    elsif token.first.casecmp('let').zero?
-      if token.count > 2
-      let_var token[1,token.size-1]
-      else
-        errorCode 5,nil
-      end
-    elsif token.first.casecmp('quit').zero?
+  def keyword(token)
+    if token[0].casecmp('print').zero?
+      key_print(token[1, token.size - 1])
+    elsif token[0].casecmp('let').zero?
+      key_let(token[1, token.size - 1])
+    elsif token[0].casecmp('quit').zero?
       quit 0
     end
   end
 
-  # isKeyword returns true if token is PRINT, LET, or QUIT
-  # returns false otherwise
- def isKeyword token
-   return true if token.casecmp('print').zero?
-   return true if token.casecmp('let').zero?
-   return true if token.casecmp('quit').zero?
-   false
- end
-
- def illegalToken token
-   token.each do |x|
-     if getType(x)=="illegal"
-       return true
-     end
-   end
-   return false
- end
-
-  def lateWord token
-    if token.count <= 1
-      return false
-    end
-    token[1,token.size-1].each do |x|
-      if "word" == getType(x)
-        return true
-      elsif "keyword" == getType(x)
-        return true
-      end
-    end
-    return false
+  def key_print(token)
+    puts Errorcode.error 5, @line, nil unless token.count > 0
+    print_line token if token.count > 0 && all_active(token)
   end
 
+  def key_let(token)
+    puts Errorcode.error 5, @line, nil unless token.count > 1
+    let_var token if token.count > 1 && all_active(token[1, token.size - 1])
+  end
+
+  def all_active(token)
+    token.each do |x|
+      if Token.letter? x
+        unless active x
+          puts Errorcode.error 1, @line, x
+          return false
+        end
+      end
+    end
+    true
+  end
 
   def calculations
-    while true
+    loop do
+      @line += 1
       print '> '
       token = gets
       # Error if token only contains \n
       if token.size < 2
-        errorCode 5,nil
-      else
-
-        tok_array = token.split
-
-        # Error if there is a word after the first token
-        if lateWord tok_array
-          errorCode 5,nil
-        elsif illegalToken tok_array
-          errorCode 5,nil
-        elsif isKeyword tok_array.first
-          keyword tok_array
+        puts Errorcode.error 5, @line, nil
+        next
+      end
+      tok_array = token.split
+      # Error if there is a word after the first token
+      if Token.late? tok_array
+        puts Errorcode.error 5, @line, nil
+        next
+      elsif Token.illegal? tok_array
+        puts Errorcode.error 5, @line, nil
+        next
+      elsif Token.keyword? tok_array.first
+        keyword tok_array
         elsif tok_array.count == 1
-          type = getType(token)
-          if getType(token)=="variable"
-            if active token
-              puts get_value token
-            else
-              errorCode 1,token
-            end
-          elsif getType(token)=="word"
-              errorCode 4,token
-          elsif getType(token)=="number"
+          type = Token.get_type(token)
+          if type == 'variable'
+              puts get_value token if active token
+              puts Errorcode.error 1, @line, token unless active token
+          elsif type == 'word'
+            puts Errorcode.error 4, @line, token
+          elsif type == 'number'
             puts token
           else
-            errorCode 5,nil
+            puts Errorcode.error 5, @line, nil
           end
         else
           print_line tok_array
-        end
       end
-      @line += 1
-    end
-  end
-
-  def errorCode(var,problem)
-    if @stack.size!=0
-      @stack = LinkedList::Stack.new
-    end
-    if var==1
-      puts "Line #{@line}: Variable #{problem.chomp} is not initialized"
-    elsif var==2
-      puts "Line #{@line}: Operator #{problem} applied to empty stack"
-    elsif var==3
-      puts "Line #{@line}: #{problem} elements in stack after evaluation"
-    elsif var==4
-      puts "Line #{@line}: Unknown keyword #{problem}"
-    else
-      puts "Line #{@line}: Could not evaluate expression"
     end
   end
 
   def let_var(token)
-    if !letter token[0]
-      errorCode 5,nil
-      return
-    elsif token.count < 2
-      errorCode 5,nil
-      return
-    elsif token.count == 2
-      if letter token[1]
-        if !active token[1]
-          errorCode 1,token[1]
-          return
-        else
+    puts Errorcode.error 5, @line, nil unless Token.letter? token[0]
+    return unless Token.letter? token[0]
+    puts Errorcode.error 5, @line, nil if token.count < 2
+    return if token.count < 2
+    if token.count == 2
+      if Token.letter? token[1]
+        if active token[1]
           token[1] = get_value token[1]
+        else
+          puts Errorcode.error 1, @line, token[1]
+          return
         end
       end
     else
-      token[1] = math token[1,token.size-1]
-      return nil if token[1] == nil
+      token[1] = MathClass.math_calc(token[1, token.size - 1], @line)
+      return nil if token[1].nil?
     end
-      if !active token[0]
+    if !active token[0]
       variable = Variables.new token[0].downcase, token[1]
       @variables << variable
-      else
-        change_value token[0],token[1]
-      end
-      puts token[1]
+    else
+      change_value token[0], token[1]
+    end
+    puts token[1]
   end
-
-
 
   def print_line(token)
     print_var token if token.count == 1
-    if token.count > 1
-      result = math token
-      puts result if result != nil
-    end
+    result = MathClass.math_calc token, @line if token.count > 1
+    puts result unless result.nil?
   end
 
   def print_var(token)
-    if number token[0]
+    if Token.number? token[0]
       puts token[0]
-    elsif letter token[0]
+    elsif Token.letter? token[0]
       if active token[0]
         puts get_value token[0]
       else
-        errorCode 1,token[0]
+        puts Errorcode.error(1, @line, token[0])
       end
+    elsif !Token.operator? token[0]
+      puts Errorcode.error(4, @line, token[0])
     else
-      if !isOperator token[0]
-        errorCode 4,token[0]
-      else
-        errorCode 5,nil
-      end
+      puts Errorcode.error(5, @line, nil)
     end
   end
 
   # Checks to see that token is in variables
   def active(token)
-    @variables.each{ |x| return true if x.var == token.downcase.chomp }
+    @variables.each { |x| return true if x.var == token.downcase.chomp }
     false
   end
-  def change_value(token,value)
-    @variables.each {|x| x.value = value if x.var == token.downcase.chomp}
+
+  def change_value(token, value)
+    @variables.each { |x| x.value = value if x.var == token.downcase.chomp }
   end
+
   def get_value(token)
-    @variables.each {|x| return x.value if x.var == token.downcase.chomp}
-  end
-
-  def math(token)
-    val = nil
-    token.each do |x|
-      type = getType(x)
-      if type == "number"
-        @stack << x
-      elsif type == "variable"
-        if active x
-          @stack << get_value(x)
-        else
-          errorCode 1,x
-          return nil
-        end
-      elsif type == "operator"
-        if @stack.size < 2
-          errorCode 2,x
-          return nil
-        elsif x == "+"
-          val = addition @stack.pop,@stack.pop
-        elsif x == "-"
-          val = subtraction @stack.pop,@stack.pop
-        elsif x == "*"
-          val = multiplication @stack.pop,@stack.pop
-        elsif x == "/"
-          val = division @stack.pop,@stack.pop
-        end
-        @stack << val
-      end
-    end
-    if @stack.size > 1
-      errorCode 3,@stack.size
-      return nil
-    end
-    @stack.pop
-  end
-
-  def addition(op1,op2)
-    op1+op2
-  end
-
-  def subtraction(op1,op2)
-    op1-op2
-  end
-
-  def division(op1,op2)
-    op1/op2
-  end
-
-  def multiplication(op1,op2)
-    op1*op2
-  end
-
-
-  # Returns true if var is +, -, *, or /
-  def isOperator(var)
-    ops = ['+', '-', '*', '/']
-    ops.include?(var)
-  end
-
-  # Returns true if var is only composed of letters
-  def letter(var)
-    return false if (var =~ /[[:alpha:]]/) == nil
-    return false if (var =~ /\d/) != nil
-    true
-  end
-  # Returns true if var is only composed of numbers
-  def number(x)
-    /\A[-+]?\d+\z/ === x.chomp
+    @variables.each { |x| return x.value if x.var == token.downcase.chomp }
   end
 
   def quit(code)
     exit(code)
   end
-
 end

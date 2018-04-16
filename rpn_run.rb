@@ -1,6 +1,9 @@
 require_relative 'variables'
 require_relative 'repl_mode'
 require_relative 'stack'
+require_relative 'errorcodes'
+require_relative 'token'
+require_relative 'math'
 # RPN decoder class
 class RPN
   attr_accessor :variables
