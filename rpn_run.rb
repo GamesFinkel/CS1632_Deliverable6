@@ -54,7 +54,6 @@ class RPN
     value = var[2]
     value = math var.drop(1).join(' ') if var.count > 3
     return value if value.is_a?(Array)
-    #@checker.integer? value
     value = (get_var value).value if @checker.letter value
     let_var(token, value)
   end
