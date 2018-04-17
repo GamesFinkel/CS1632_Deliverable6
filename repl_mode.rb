@@ -26,13 +26,13 @@ class REPL
   end
 
   def key_print(token)
-    Errorcode.error 5, @line, nil unless token.count > 0
+    Errorcode.error 2, @line, 'PRINT' unless token.count > 0
     print_line token if token.count > 0 && check(token)
   end
 
   def key_let(token)
-    return Errorcode.error 5, @line, nil unless Token.letter?(token[0])
     return Errorcode.error 2, @line, 'LET' unless token.count > 1
+    return Errorcode.error 5, @line, nil unless Token.letter?(token[0])
     let_var token if check(token[1, token.size - 1])
   end
 
