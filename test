@@ -1,0 +1,4 @@
+LET a 1.5
+let a 40
+print a
+

@@ -52,5 +52,4 @@ class RPNRuntest < Minitest::Test
   end
   assert_match %r%60%, out
   end
-
 end

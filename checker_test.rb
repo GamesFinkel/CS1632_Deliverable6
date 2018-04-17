@@ -24,7 +24,6 @@ class CheckTest < Minitest::Test
     val = @checker.check_line "PRINT A 45 % 45 +"
     assert_equal val, " incorrect input %"
   end
-
   # Testing the bounds of the digits accepted
   # returns true if it accepts the value
    def test_get_upper_bound_value

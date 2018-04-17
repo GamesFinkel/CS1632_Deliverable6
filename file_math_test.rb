@@ -40,5 +40,4 @@ class FileMathTest < Minitest::Test
     val = @rpn.keyword 'tester'
     assert_equal val, [4, "Line 0: Unknown keyword tester"]
   end
-
 end
