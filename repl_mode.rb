@@ -15,7 +15,7 @@ class REPL
   end
 
   def keyword(token)
-    key = token.first
+    key = token.first.downcase
     key_print(token[1, token.size - 1]) if key.eql? 'print'
     key_let(token[1, token.size - 1]) if key.eql? 'let'
     quit 0 if key.eql? 'quit'
@@ -32,7 +32,7 @@ class REPL
 
   def key_let(token)
     return Errorcode.error 5, @line, nil unless Token.letter?(token[0])
-    return Errorcode.error 5, @line, nil unless token.count > 1
+    return Errorcode.error 2, @line, "LET" unless token.count > 1
     let_var token if check(token[1, token.size - 1])
   end
 
@@ -56,6 +56,7 @@ class REPL
   end
 
   def broken(token)
+    return false if token[0].casecmp('quit').zero?
     return true if Token.late? token
     return true if Token.illegal? token
     false
@@ -65,7 +66,7 @@ class REPL
     loop do
       @line += 1
       print '> '
-      token = gets.downcase
+      token = gets
       got_input token
     end
   end
