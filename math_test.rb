@@ -28,17 +28,17 @@ class MathTest < Minitest::Test
 
   def test_code_subtraction
     val = CALC.math('99 40 -'.split, 5)
-    assert_equal(-59, val)
+    assert_equal(59, val)
   end
 
   def test_code_division
-    val = CALC.math('5 25 /'.split, 3)
+    val = CALC.math('25 5 /'.split, 3)
     assert_equal 5, val
   end
 
   def test_code_div_decimal
     val = CALC.math('5 12 /'.split, 17)
-    assert_equal 2, val
+    assert_equal 0, val
   end
 
   def test_code_multiplication

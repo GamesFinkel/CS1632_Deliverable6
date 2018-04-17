@@ -1,15 +1,10 @@
 require_relative 'rpn_run'
 require_relative 'repl_mode'
 
-if ARGV.count.zero?
-  c = REPL.new
-  c.calculations
-end
-
 if ARGV.count == 1
   file = ARGV[0]
   c = RPN.new
-  c.start file
+  c.calculations file
 end
 
 if ARGV.count > 1
@@ -17,9 +12,17 @@ if ARGV.count > 1
   ARGV.each do |x|
     f1 = File.readlines(x)
     open('myfile.out', 'a') do |f|
-      f1.each { |q| f.puts q }
+      f1.each do |q|
+        f.puts q
+      end
     end
+    file = 'myfile.out'
   end
   c = RPN.new
-  c.start 'myfile.out'
+  c.start file
+end
+
+if ARGV.count.zero?
+  c = REPL.new
+  c.calculations
 end

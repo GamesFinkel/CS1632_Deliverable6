@@ -34,19 +34,27 @@ class CALC
     return multiplication if operator == '*'
   end
 
-  def self.addition
-    @stack.pop + @stack.pop
+  def self.subtraction
+    op1 = @stack.pop
+    op2 = @stack.pop
+    op2 - op1
   end
 
-  def self.subtraction
-    @stack.pop - @stack.pop
+  def self.addition
+    op1 = @stack.pop
+    op2 = @stack.pop
+    op2 + op1
   end
 
   def self.multiplication
-    @stack.pop * @stack.pop
+    op1 = @stack.pop
+    op2 = @stack.pop
+    op2 * op1
   end
 
   def self.division
-    @stack.pop / @stack.pop
+    op1 = @stack.pop
+    op2 = @stack.pop
+    op2 / op1
   end
 end

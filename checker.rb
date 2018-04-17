@@ -1,7 +1,11 @@
 # Checker class to check all the tokens in RPN
 class Checker
   def integer?(integer)
-    /\A[-+]?\d+\z/ === integer
+    case integer
+    when /\A[-+]?\d+\z/
+      return true
+    end
+    false
   end
 
   def decimal?(integer)

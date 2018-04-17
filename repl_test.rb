@@ -40,7 +40,7 @@ class REPLTest < Minitest::Test
   end
 
   def test_key_let_long
-    assert_output("-25\n") { @repl.key_let("A 11 3 * 8 -".split) }
+    assert_output("25\n") { @repl.key_let("A 11 3 * 8 -".split) }
   end
 
   def test_got_input_quit

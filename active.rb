@@ -1,3 +1,4 @@
+require_relative 'variables'
 # Check if variables are active
 class Active
   # Checks to see that token is in variables
