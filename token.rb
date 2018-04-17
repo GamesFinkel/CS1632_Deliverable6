@@ -13,7 +13,11 @@ class Token
 
   def self.number?(var)
     return true if var.is_a? Integer
-    /\A[-+]?\d+\z/ === var.chomp
+    case var
+    when /\A[-+]?\d+\z/
+      return true
+    end
+    false
   end
 
   def self.keyword?(token)
