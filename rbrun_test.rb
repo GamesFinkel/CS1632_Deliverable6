@@ -26,10 +26,10 @@ class RPNRuntest < Minitest::Test
     assert_equal val, [1, "Line 0: Variable a is not initialized"]
   end
 
-  #def test_let_var_invalid_rpn
-  #	val = @rpn.let_var "LET a 30 30 40 +"
-  #	assert_equal val, [3, "Line 0: Stack has 2 elements after evaluation"]
-  #end
+  def test_let_var_invalid_rpn
+    val = @rpn.check_var "LET a 30 30 40 +"
+    assert_equal val, [3, "Line 0: Stack has 2 elements after evaluation"]
+  end
 
   def test_print_var
   out, err = capture_io do

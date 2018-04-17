@@ -59,7 +59,7 @@ class Checker
   def quit(input)
     exit(0) if input.nil?
     puts input[1]
-    exit(input[2].to_i)
+    exit(input[0].to_i)
   end
 
   def error(errorcode, line, var)
