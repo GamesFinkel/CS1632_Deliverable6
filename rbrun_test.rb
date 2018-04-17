@@ -12,7 +12,7 @@ class RPNRuntest < Minitest::Test
 
   def test_print_1_var
   	val = @rpn.print_line "PRINT a 10"
-  	assert_equal val, [5, "Line 0: Incorrect number of arguments"]
+  	assert_equal val, [5, "Line 0: Could not evaluate expression"]
   end
 
   def test_let_var_rpn
