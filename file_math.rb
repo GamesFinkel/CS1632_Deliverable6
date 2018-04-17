@@ -1,6 +1,6 @@
 require_relative 'checker'
 require_relative 'stack'
-# Does math when not in REPL
+# Class that contains the operations for math in RPN
 class FileMath
   def initialize
     @checker = Checker.new
@@ -22,8 +22,11 @@ class FileMath
     operand2 / operand1
   end
 
-  def operator?(var)
-    ops = ['+', '-', '*', '/']
-    ops.include?(var)
+  def do_math(op1, op2, operator)
+    val = addition op1, op2 if operator == '+'
+    val = subtraction op1, op2 if operator == '-'
+    val = multiplication op1, op2 if operator == '*'
+    val = division op1, op2 if operator == '/'
+    val
   end
 end

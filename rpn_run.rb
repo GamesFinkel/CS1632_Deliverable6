@@ -1,12 +1,7 @@
 require_relative 'variables'
 require_relative 'repl_mode'
-require_relative 'stack'
-require_relative 'errorcodes'
-require_relative 'token'
-require_relative 'math'
 require_relative 'file_math'
 require_relative 'checker'
-require_relative 'active'
 # RPN decoder class
 class RPN
   attr_accessor :variables
@@ -17,6 +12,7 @@ class RPN
     @line = 0
     @checker = Checker.new
     @math = FileMath.new
+    @stack = LinkedList::Stack.new
   end
 
   def start(file)
@@ -24,93 +20,106 @@ class RPN
     calculations text
   end
 
+  def check_start(token)
+    out = @checker.check_line token
+    @checker.quit [1, "Line #{@line}:" << out] unless out == true
+  end
+
   def keyword(token)
-    first = token.split.first
-    quit 4, "Line #{@line}: Unknown keyword #{token.split.first}" unless @checker.keyword? first
-    print_line token if first.casecmp('print').zero?
-    let_var token if first.casecmp('let').zero?
-    quit if first.casecmp('quit').zero?
+    first1 = token.split.first
+    first = first1.upcase
+    return @checker.error(4, @line, first1) unless @checker.keyword? first
+    return print_line token if first.casecmp('print').zero?
+    return check_var token if first.casecmp('let').zero?
+    @checker.quit [0, ' '] if first.casecmp('quit').zero?
   end
 
   def calculations(text)
-    token = split_line text, @line
+    token = text[@line]
     @line += 1
     while @line <= text.count
-      first = token.split.first
-      keyword token unless @checker.integer? first
-      token = split_line text, @line
+      check_start token
+      toke = keyword token unless @checker.integer? token.split.first
+      @checker.quit toke if toke.is_a?(Array)
+      token = text[@line]
       @line += 1
     end
   end
 
-  def split_line(text, line)
-    text[line]
+  def check_var(token)
+    var = token.split(' ')
+    return @checker.error(1, @line, var[1]) unless @checker.letter var[1]
+    value = var[2]
+    value = math var.drop(1).join(' ') if var.count > 3
+    return value if value.is_a?(Array)
+    let_var(token, value)
   end
 
-  def let_var(token)
+  def let_var(token, value)
     var = token.split(' ')
-    value = var[2]
-    raise "Line #{@line}: Variable #{var[1]} is not a letter" unless @checker.letter var[1]
-    value = math var.drop(2).join(' ') if var.count > 3
-    variable = Variables.new var[1].downcase, value
+    # return false unless @checker.decimal? value
+    return set_var(var[1], value) unless get_var(var[1]).is_a?(Array)
+    init_var(var[1].downcase, value)
+  end
+
+  def set_var(var, val)
+    @variables.each do |x|
+      x.value = val if x.var == var.downcase
+    end
+    true
+  end
+
+  def init_var(var, val)
+    variable = Variables.new var, val
     @variables << variable
+    true
   end
 
   def print_line(token)
     var = token.split(' ')
-    if @checker.integer? var[1] && var.count == 2
-       puts var[1]
-    end
-    puts "#{math token}" if var.count > 3
-    if var.count == 2
-       if @checker.integer? var[1]
-         puts var[1]
-       else
-         print_var token
-       end
-    end
+    return @checker.error(5, @line, 'f') if var.count == 3
+    return print_count_2 token if var.count == 2
+    return print_math token if var.count > 3
+    true
+  end
+
+  def print_count_2(token)
+    var = token.split(' ')
+    puts var[1] if @checker.integer? var[1]
+    return print_var token unless @checker.integer? var[1]
+    true
+  end
+
+  def print_math(token)
+    val = math token
+    return val if val.is_a?(Array)
+    puts val
+    true
   end
 
   def print_var(token)
     var = token.split(' ')
     puts var[2] unless var[2].nil?
     x = get_var(var[1]) if var[1].to_i.is_a? Integer
+    return x if x.is_a?(Array)
     puts x.value unless x == false
   end
 
   def get_var(variable)
-    @variables.each { |x|
-      return x if x.var == variable.downcase }
-    quit 1, "Line #{@line}: Variable #{variable} is not initialized"
+    @variables.each { |x| return x if x.var == variable.downcase }
+    [1, "Line #{@line}: Variable #{variable} is not initialized"]
   end
 
   def math(token)
-    val = 0
-    stack = LinkedList::Stack.new
-    var = token.split(' ')
-    var.each {|x|
-      if @checker.integer? x
-        stack << x.to_i
-      elsif @checker.keyword? x
-      elsif @math.operator?(x)
-        operator = x
-        raise "Error 2 at line #{@line}:: Stack empty when try to apply operator #{x}" if stack.size < 2
-        val = @math.addition stack.pop, stack.pop if operator == '+'
-        val = @math.subtraction stack.pop, stack.pop if operator == '-'
-        val = @math.multiplication stack.pop, stack.pop if operator == '*'
-        val = @math.division stack.pop, stack.pop if operator == '/'
-        stack << val
-        quit 2, 'line #{@line}: Stack empty when trying to apply operator #{x}' if val == "Stack is empty"
-      elsif @checker.letter x
-        stack << get_var(x.downcase).value
+    token.split(' ').drop(1).each do |x|
+      @stack << x.to_i if @checker.integer? x
+      if @checker.operator?(x)
+        return @checker.error(2, @line, x) if @stack.size < 2
+        @stack << @math.do_math(@stack.pop, @stack.pop, x)
       end
-      }
-    quit 3, "at line #{@line}: Stack has #{stack.size} elements after evaluation" if stack.size > 1
-    stack.pop
-  end
-
-  def quit(errcode, reason)
-    puts reason
-    exit(errcode)
+      @stack << get_var(x.downcase).value if @checker.letter x
+    end
+    return @checker.error(3, @line, @stack.size) if @stack.size > 1
+    @stack.pop
   end
 end

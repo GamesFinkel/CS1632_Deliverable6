@@ -1,4 +1,5 @@
 require_relative 'rpn_run'
+require_relative 'repl_mode'
 
 if ARGV.count.zero?
   c = REPL.new
@@ -19,5 +20,6 @@ if ARGV.count > 1
       f1.each { |q| f.puts q }
     end
   end
+  c = RPN.new
   c.start 'myfile.out'
 end

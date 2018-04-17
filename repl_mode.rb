@@ -1,3 +1,10 @@
+require_relative 'variables'
+require_relative 'repl_mode'
+require_relative 'stack'
+require_relative 'errorcodes'
+require_relative 'token'
+require_relative 'math'
+require_relative 'active'
 # REPL
 class REPL
   attr_accessor :vars
@@ -8,9 +15,10 @@ class REPL
   end
 
   def keyword(token)
-    key_print(token[1, token.size - 1]) if token.first.eql? 'print'
-    key_let(token[1, token.size - 1]) if token[0].eql? 'let'
-    quit 0 if token[0].eql? 'quit'
+    key = token.first
+    key_print(token[1, token.size - 1]) if key.eql? 'print'
+    key_let(token[1, token.size - 1]) if key.eql? 'let'
+    quit 0 if key.eql? 'quit'
   end
 
   def check(token)
@@ -23,12 +31,34 @@ class REPL
   end
 
   def key_let(token)
-    unless Token.letter? token[0]
-      Errorcode.error 5, @line, nil
-      return
+    return Errorcode.error 5, @line, nil unless Token.letter?(token[0])
+    return Errorcode.error 5, @line, nil unless token.count > 1
+    let_var token if check(token[1, token.size - 1])
+  end
+
+  def word?(token)
+    token.each do |x|
+      return x if Token.get_type(x) == 'word'
     end
-    Errorcode.error 5, @line, nil unless token.count > 1
-    let_var token if token.count > 1 && check(token[1, token.size - 1])
+    nil
+  end
+
+  def got_input(token)
+    # Error if token only contains \n
+    return Errorcode.error 5, @line, nil if token.size < 2
+    tok_array = token.split
+    # Error if there is a word after the first token
+    return Errorcode.error 5, @line, nil if broken tok_array
+    return keyword tok_array if Token.keyword? tok_array.first
+    word = word?(tok_array)
+    return Errorcode.error 4, @line, word unless word.nil?
+    print_line tok_array if check tok_array
+  end
+
+  def broken(token)
+    return true if Token.late? token
+    return true if Token.illegal? token
+    false
   end
 
   def calculations
@@ -36,45 +66,12 @@ class REPL
       @line += 1
       print '> '
       token = gets.downcase
-      # Error if token only contains \n
-      if token.size < 2
-        Errorcode.error 5, @line, nil
-        next
-      end
-      tok_array = token.split
-      # Error if there is a word after the first token
-      if Token.late? tok_array
-        Errorcode.error 5, @line, nil
-        next
-      elsif Token.illegal? tok_array
-        Errorcode.error 5, @line, nil
-        next
-      elsif Token.keyword? tok_array.first
-        keyword tok_array
-      elsif tok_array.count == 1
-        type = Token.get_type(token)
-        if type == 'variable'
-          puts Active.get_value(@vars, token) if Active.active(@vars, token)
-          Errorcode.error 1, @line, token unless Active.active(@vars, token)
-        elsif type == 'word'
-          Errorcode.error 4, @line, token
-        elsif type == 'number'
-          puts token
-        else
-          Errorcode.error 5, @line, nil
-        end
-      else
-        print_line tok_array if check tok_array
-      end
+      got_input token
     end
   end
 
   def let_var(token)
-    if token.count == 2
-      token[1] = Active.get_value(@vars, token[1]) if Token.letter? token[1]
-    else
-      token[1] = CALC.math Active.to_num(@vars, token[1, token.size - 1]), @line
-    end
+    token[1] = CALC.math Active.to_num(@vars, token[1, token.size - 1]), @line
     return nil if token[1].nil?
     if !Active.active(@vars, token[0])
       variable = Variables.new token[0].downcase, token[1].to_s
@@ -87,7 +84,7 @@ class REPL
 
   def print_line(token)
     token = Active.to_num(@vars, token)
-    token = CALC.math(Active.to_num(@vars, token), @line) if token.count > 1
+    token = CALC.math(token, @line) if token.count > 1
     puts token unless token.nil?
   end
 
