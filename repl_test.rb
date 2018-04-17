@@ -44,12 +44,6 @@ class REPLTest < Minitest::Test
   end
 
   def test_got_input_quit
-    val = @repl.got_input("QUIT")
-    assert_nil val
-    assert_output("") { @repl.got_input("QUIT") }
-  end
-
-  def test_quit
-    assert_raises(SystemExit) { @repl.quit(1) }
+    assert_raises(SystemExit) { @repl.got_input("QUIT") }
   end
 end
