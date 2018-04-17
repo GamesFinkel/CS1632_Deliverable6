@@ -4,7 +4,7 @@ require 'minitest/autorun'
 require_relative 'checker'
 require_relative 'rpn_run'
 # THis is the class for testing the driver methods
-class CheckTest < Minitest::Test
+class ErrorsTest < Minitest::Test
   def setup
     @rpn = RPN.new
   end

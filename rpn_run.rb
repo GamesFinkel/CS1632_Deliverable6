@@ -20,9 +20,10 @@ class RPN
   end
 
   def keyword(token)
-    first = token.split.first
+    first1 = token.split.first
+    first = first1.upcase
     return if @checker.integer? first
-    return @checker.error(4, @line, first) unless @checker.keyword? first
+    return @checker.error(4, @line, first1) unless @checker.keyword? first
     return print_line token if first.casecmp('print').zero?
     return let_var token if first.casecmp('let').zero?
     @checker.quit [0, ' '] if first.casecmp('quit').zero?
@@ -45,8 +46,9 @@ class RPN
   def let_var(token)
     var = token.split(' ')
     value = var[2]
+    return if var.count == 4
     return @checker.error(1, @line, var[1]) unless @checker.letter var[1]
-    value = math var.drop(1).join(' ') if var.count > 3
+    value = math var.drop(1).join(' ') if var.count > 4
     return value if value.kind_of?(Array)
     # return false unless @checker.decimal? value
     variable = Variables.new var[1].downcase, value

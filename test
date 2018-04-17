@@ -1,2 +1,2 @@
-LET b 30 30 +
+LET a 1 2
 PRINT a
