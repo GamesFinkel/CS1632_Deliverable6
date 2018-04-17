@@ -59,7 +59,6 @@ class RPN
 
   def let_var(token, value)
     var = token.split(' ')
-    # return false unless @checker.decimal? value
     return set_var(var[1], value) unless get_var(var[1]).is_a?(Array)
     init_var(var[1].downcase, value)
   end
