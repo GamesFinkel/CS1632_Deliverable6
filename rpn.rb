@@ -2,7 +2,7 @@ require_relative 'rpn_run'
 if ARGV.count == 1
   file = ARGV[0]
   c = RPN.new
-  c.start file
+  c.calculations file
 end
 
 if ARGV.count > 1

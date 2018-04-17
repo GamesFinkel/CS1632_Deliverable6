@@ -15,11 +15,6 @@ class RPN
     @stack = LinkedList::Stack.new
   end
 
-  def start(file)
-    text = @checker.open_file file
-    calculations text
-  end
-
   def check_start(token)
     out = @checker.check_line token
     @checker.quit [1, "Line #{@line}:" << out] unless out == true
@@ -34,16 +29,23 @@ class RPN
     @checker.quit [0, ' '] if first.casecmp('quit').zero?
   end
 
-  def calculations(text)
-    token = text[@line]
+  def calculations(file)
+    text = @checker.open_file file
+    token = split_line text
     @line += 1
     while @line <= text.count
       check_start token
       toke = keyword token unless @checker.integer? token.split.first
       @checker.quit toke if toke.is_a?(Array)
-      token = text[@line]
+      token = split_line text
       @line += 1
     end
+  end
+
+  def split_line(text)
+    token = text[@line]
+    token = text[@line += 1] if /\S/ !~ token
+    token
   end
 
   def check_var(token)
