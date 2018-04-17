@@ -12,7 +12,7 @@ class Errorcode
     if var == 1
       "Variable #{problem.chomp} is not initialized"
     elsif var == 2
-      return "#{problem} applied to empty stack" if problem == 'LET'
+      return "#{problem} applied to empty stack" if Token.keyword? problem
       "Operator #{problem} applied to empty stack"
     elsif var == 3
       "#{problem} elements in stack after evaluation"
