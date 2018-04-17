@@ -32,7 +32,6 @@ class CALC
     return subtraction if operator == '-'
     return division if operator == '/'
     return multiplication if operator == '*'
-  end
 
   def self.subtraction
     op1 = @stack.pop
