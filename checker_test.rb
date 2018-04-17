@@ -78,6 +78,13 @@ class CheckTest < Minitest::Test
   	assert_equal val, ["tester"]
   end
 
+  def test_alphabet_var
+    alphabet = %w[a b c d e f g h i j k l m n o p q r s t u v w x y z]
+    alphabet.each do |x|
+      assert_equal @rpn.check_var("LET #{x} 5"), true
+    end
+  end
+
   def test_num_always_integer
     property_of {
       variable = integer

@@ -31,6 +31,26 @@ class RPNRuntest < Minitest::Test
     assert_equal val, [3, "Line 0: Stack has 2 elements after evaluation"]
   end
 
+  def test_let_var_another_var
+    @rpn.check_var "LET a 30"
+    @rpn.check_var "LET b a"
+    val = @rpn.get_var('b')
+    assert_equal val.value, '30'
+  end
+
+  def test_get_lowercase_var
+    @rpn.check_var "LET a 30"
+    val = @rpn.get_var('A')
+    assert_equal val.value, '30'
+  end
+
+  def test_get_uppercase_var
+    @rpn.check_var "LET A 30"
+    @rpn.check_var "LET b a"
+    val = @rpn.get_var('a')
+    assert_equal val.value, '30'
+  end
+
   def test_print_var
   out, err = capture_io do
   	@rpn.check_var "LET a 30"

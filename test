@@ -1,4 +1,4 @@
-LET a 40
+LET a 1.0
 let b a
 print f
 
