@@ -18,6 +18,7 @@ class Checker
   end
 
   def letter(var)
+    var = var.to_s
     return false if var.length > 1
     alphabet = %w[a b c d e f g]
     alphabet2 = %w[h i j k l m]

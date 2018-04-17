@@ -36,7 +36,7 @@ class Math
   end
 
   def subtraction(operand1, operand2)
-    operand1 - operand2
+    operand2 - operand1
   end
 
   def multiplication(operand1, operand2)
@@ -44,7 +44,7 @@ class Math
   end
 
   def division(operand1, operand2)
-    operand1 / operand2
+    operand2 / operand1
   end
 
   def operator?(var)
