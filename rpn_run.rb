@@ -20,7 +20,7 @@ class RPN
     calculations text
   end
 
-  def check_start
+  def check_start(token)
     out = @checker.check_line token
     @checker.quit [1, "Line #{@line}:" << out] unless out == true
   end
@@ -32,14 +32,13 @@ class RPN
     return print_line token if first.casecmp('print').zero?
     return check_var token if first.casecmp('let').zero?
     @checker.quit [0, ' '] if first.casecmp('quit').zero?
-    true
   end
 
   def calculations(text)
     token = text[@line]
     @line += 1
     while @line <= text.count
-      check_start
+      check_start token
       toke = keyword token unless @checker.integer? token.split.first
       @checker.quit toke if toke.is_a?(Array)
       token = text[@line]
@@ -49,10 +48,9 @@ class RPN
 
   def check_var(token)
     var = token.split(' ')
-    return if var.count == 4
     return @checker.error(1, @line, var[1]) unless @checker.letter var[1]
     value = var[2]
-    value = math var.drop(1).join(' ') if var.count > 4
+    value = math var.drop(1).join(' ') if var.count > 3
     return value if value.is_a?(Array)
     let_var(token, value)
   end
@@ -80,9 +78,15 @@ class RPN
   def print_line(token)
     var = token.split(' ')
     return @checker.error(5, @line, 'f') if var.count == 3
-    puts var[1] if (@checker.integer? var[1]) && (var.count == 2)
-    return print_var token if (!@checker.integer? var[1]) && (var.count == 2)
+    return print_count_2 token if var.count == 2
     return print_math token if var.count > 3
+    true
+  end
+
+  def print_count_2(token)
+    var = token.split(' ')
+    puts var[1] if @checker.integer? var[1]
+    return print_var token unless @checker.integer? var[1]
     true
   end
 
