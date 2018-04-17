@@ -18,7 +18,7 @@ if ARGV.count > 1
     file = 'myfile.out'
   end
   c = RPN.new
-  c.start file
+  c.calculations file
 end
 
 if ARGV.count.zero?
