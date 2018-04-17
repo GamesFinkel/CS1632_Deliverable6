@@ -12,6 +12,7 @@ class RPN
     @line = 0
     @checker = Checker.new
     @math = FileMath.new
+    @stack = LinkedList::Stack.new
   end
 
   def start(file)
@@ -19,13 +20,17 @@ class RPN
     calculations text
   end
 
+  def check_start
+    out = @checker.check_line token
+    @checker.quit [1, "Line #{@line}:" << out] unless out == true
+  end
+
   def keyword(token)
     first1 = token.split.first
     first = first1.upcase
-    return if @checker.integer? first
     return @checker.error(4, @line, first1) unless @checker.keyword? first
     return print_line token if first.casecmp('print').zero?
-    return let_var token if first.casecmp('let').zero?
+    return check_var token if first.casecmp('let').zero?
     @checker.quit [0, ' '] if first.casecmp('quit').zero?
     true
   end
@@ -34,24 +39,40 @@ class RPN
     token = text[@line]
     @line += 1
     while @line <= text.count
-      out = @checker.check_line token
-      @checker.quit [1, "Line #{@line}:" << out] unless out == true
-      toke = keyword token
-      @checker.quit toke if toke.kind_of?(Array)
+      check_start
+      toke = keyword token unless @checker.integer? token.split.first
+      @checker.quit toke if toke.is_a?(Array)
       token = text[@line]
       @line += 1
     end
   end
 
-  def let_var(token)
+  def check_var(token)
     var = token.split(' ')
-    value = var[2]
     return if var.count == 4
     return @checker.error(1, @line, var[1]) unless @checker.letter var[1]
+    value = var[2]
     value = math var.drop(1).join(' ') if var.count > 4
-    return value if value.kind_of?(Array)
+    return value if value.is_a?(Array)
+    let_var(token, value)
+  end
+
+  def let_var(token, value)
+    var = token.split(' ')
     # return false unless @checker.decimal? value
-    variable = Variables.new var[1].downcase, value
+    return set_var(var[1], value) unless get_var(var[1]).is_a?(Array)
+    init_var(var[1].downcase, value)
+  end
+
+  def set_var(var, val)
+    @variables.each do |x|
+      x.value = val if x.var == var.downcase
+    end
+    true
+  end
+
+  def init_var(var, val)
+    variable = Variables.new var, val
     @variables << variable
     true
   end
@@ -61,11 +82,14 @@ class RPN
     return @checker.error(5, @line, 'f') if var.count == 3
     puts var[1] if (@checker.integer? var[1]) && (var.count == 2)
     return print_var token if (!@checker.integer? var[1]) && (var.count == 2)
-    if var.count > 3
-      val = math token
-      return val if val.kind_of?(Array)
-      puts val
-    end
+    return print_math token if var.count > 3
+    true
+  end
+
+  def print_math(token)
+    val = math token
+    return val if val.is_a?(Array)
+    puts val
     true
   end
 
@@ -73,29 +97,25 @@ class RPN
     var = token.split(' ')
     puts var[2] unless var[2].nil?
     x = get_var(var[1]) if var[1].to_i.is_a? Integer
-    return x if x.kind_of?(Array)
+    return x if x.is_a?(Array)
     puts x.value unless x == false
   end
 
   def get_var(variable)
     @variables.each { |x| return x if x.var == variable.downcase }
-    return [1, "Line #{@line}: Variable #{variable} is not initialized"]
+    [1, "Line #{@line}: Variable #{variable} is not initialized"]
   end
 
   def math(token)
-    stack = LinkedList::Stack.new
-    var = token.split(' ')
-    var.drop(1).each do |x|
-      if @checker.integer? x
-        stack << x.to_i
-      elsif @checker.operator?(x)
-        return @checker.error(2, @line, x) if stack.size < 2
-        stack << @math.do_math(stack.pop, stack.pop, x)
-      elsif @checker.letter x
-        stack << get_var(x.downcase).value
+    token.split(' ').drop(1).each do |x|
+      @stack << x.to_i if @checker.integer? x
+      if @checker.operator?(x)
+        return @checker.error(2, @line, x) if @stack.size < 2
+        @stack << @math.do_math(@stack.pop, @stack.pop, x)
       end
+      @stack << get_var(x.downcase).value if @checker.letter x
     end
-    return @checker.error(3, @line, stack.size) if stack.size > 1
-    stack.pop
+    return @checker.error(3, @line, @stack.size) if @stack.size > 1
+    @stack.pop
   end
 end

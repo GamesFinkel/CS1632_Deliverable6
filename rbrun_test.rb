@@ -16,12 +16,12 @@ class RPNRuntest < Minitest::Test
   end
 
   def test_let_var_rpn
-  	val = @rpn.let_var "LET a 30 30 +"
+  	val = @rpn.check_var "LET a 30 30 +"
   	assert_equal val, true
   end
 
   def test_let_var_invalid_get
-    @rpn.let_var "LET a 1 2"
+    @rpn.check_var "LET a 1 2"
     val = @rpn.get_var "a"
     assert_equal val, [1, "Line 0: Variable a is not initialized"]
   end
@@ -33,7 +33,7 @@ class RPNRuntest < Minitest::Test
 
   def test_print_var
   out, err = capture_io do
-  	@rpn.let_var "LET a 30"
+  	@rpn.check_var "LET a 30"
     @rpn.print_line "PRINT a"
   end
   assert_match %r%30%, out

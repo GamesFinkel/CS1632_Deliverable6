@@ -4,7 +4,7 @@ require 'minitest/autorun'
 require_relative 'file_math'
 require_relative 'rpn_run'
 # THis is the class for testing the driver methods
-class CheckTest < Minitest::Test
+class FileMathTest < Minitest::Test
   def setup
     @math = FileMath.new
     @rpn = RPN.new
@@ -31,7 +31,7 @@ class CheckTest < Minitest::Test
   end
 
   def test_letter
-    @rpn.let_var "LET a 30"
+    @rpn.check_var "LET a 30"
     val = @rpn.math "PRINT a 50 +"
     assert_equal val, 80
   end

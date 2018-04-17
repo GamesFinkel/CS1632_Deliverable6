@@ -43,7 +43,7 @@ class CheckTest < Minitest::Test
 
   # returns the value of the middle bound zero
   def test_decimal_value
-    val = @rpn.let_var('LET d 1.5')
+    val = @rpn.check_var('LET d 1.5')
     assert_equal val, '1.5'
   end
 
