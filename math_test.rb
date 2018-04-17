@@ -13,15 +13,11 @@ class MathTest < Minitest::Test
   end
 
   def test_code_add_failure
-    val = CALC.math('5 +'.split, 13)
-    assert_nil val
     string = "Line 13: Operator + applied to empty stack\n"
     assert_output(string) { CALC.math('5 +'.split, 13) }
   end
 
   def test_code_number_failure
-    val = CALC.math('5 5 5'.split, 19)
-    assert_nil val
     string = "Line 19: 3 elements in stack after evaluation\n"
     assert_output(string) { CALC.math('5 5 5'.split, 19) }
   end
