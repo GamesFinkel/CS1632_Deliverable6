@@ -14,13 +14,11 @@ class REPLTest < Minitest::Test
   end
 
   def test_check_fail
-    val = @repl.check("5 5 A +".split)
-    assert_equal val, false
+    assert_output("Line 1: Variable A is not initialized\n") { @repl.check("5 5 A +".split) }
   end
 
   def test_got_input_blank
-    val = @repl.got_input('\n')
-    assert_nil val
+    assert_output("Line 1: Could not evaluate expression\n") { @repl.got_input('') }
   end
 
   def test_got_input_number
@@ -28,7 +26,7 @@ class REPLTest < Minitest::Test
   end
 
   def test_got_input_word
-    assert_output("Line 0: Could not evaluate expression\n") { @repl.got_input("cat dog\n") }
+    assert_output("Line 1: Could not evaluate expression\n") { @repl.got_input("cat dog\n") }
   end
 
   def test_key_print
@@ -44,12 +42,6 @@ class REPLTest < Minitest::Test
   end
 
   def test_got_input_quit
-    val = @repl.got_input("QUIT")
-    assert_nil val
-    assert_output("") { @repl.got_input("QUIT") }
-  end
-
-  def test_quit
-    assert_raises(SystemExit) { @repl.quit(1) }
+    assert_raises(SystemExit) { @repl.got_input("QUIT") }
   end
 end
