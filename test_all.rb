@@ -3,4 +3,7 @@ require_relative 'rbrun_test'
 require_relative 'errors_test'
 require_relative 'print_test'
 require_relative 'checker_test'
-
+require_relative 'errorcodes_test'
+require_relative 'math_test'
+require_relative 'repl_test'
+require_relative 'token_test'

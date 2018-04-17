@@ -1,4 +1,5 @@
 require_relative 'rpn_run'
+require_relative 'repl_mode'
 if ARGV.count == 1
   file = ARGV[0]
   c = RPN.new

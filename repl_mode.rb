@@ -1,126 +1,94 @@
+require_relative 'variables'
+require_relative 'repl_mode'
+require_relative 'stack'
+require_relative 'errorcodes'
+require_relative 'token'
+require_relative 'math'
+require_relative 'active'
+# REPL
 class REPL
-  attr_accessor :variables
+  attr_accessor :vars
   attr_accessor :line
-
   def initialize
-    @variables = []
-    @line = 1
+    @vars = []
+    @line = 0
   end
 
-  def valid_token(token)
-    return false unless keyword token
-    true
+  def keyword(token)
+    key = token.first
+    key_print(token[1, token.size - 1]) if key.eql? 'print'
+    key_let(token[1, token.size - 1]) if key.eql? 'let'
+    quit 0 if key.eql? 'quit'
   end
 
- def keyword(token)
-    if token.split.first.casecmp('print').zero?
-      print_line token
-    elsif token.split.first.casecmp('let').zero?
-      let_var token
-    elsif token.split.first.casecmp('quit').zero?
-      quit
-    else
-      raise "Keyword didn't start line #{@line}\n"
+  def check(token)
+    Active.all_active(@vars, @line, token)
+  end
+
+  def key_print(token)
+    Errorcode.error 5, @line, nil unless token.count > 0
+    print_line token if token.count > 0 && check(token)
+  end
+
+  def key_let(token)
+    return Errorcode.error 5, @line, nil unless Token.letter?(token[0])
+    return Errorcode.error 5, @line, nil unless token.count > 1
+    let_var token if check(token[1, token.size - 1])
+  end
+
+  def word?(token)
+    token.each do |x|
+      return x if Token.get_type(x) == 'word'
     end
-    true
+    nil
+  end
+
+  def got_input(token)
+    # Error if token only contains \n
+    return Errorcode.error 5, @line, nil if token.size < 2
+    tok_array = token.split
+    # Error if there is a word after the first token
+    return Errorcode.error 5, @line, nil if broken tok_array
+    return keyword tok_array if Token.keyword? tok_array.first
+    word = word?(tok_array)
+    return Errorcode.error 4, @line, word unless word.nil?
+    print_line tok_array if check tok_array
+  end
+
+  def broken(token)
+    return true if Token.late? token
+    return true if Token.illegal? token
+    false
   end
 
   def calculations
-  	print '> '
-    token = gets
-    while true
-      if stack_check token
-        puts "Line #{@line}: #{var.count} elements in stack after evaluation"
-      else
-      	print '> '
-        valid_token token
-      end
-      token = gets
+    loop do
       @line += 1
+      print '> '
+      token = gets.downcase
+      got_input token
     end
-  end
-
-  def stack_check(token)
-    var = token.split(' ')
-    if var.count > 4
-      return true
-    end
-    false
-  end
-
-  def split_line(text, line)
-    text[line]
   end
 
   def let_var(token)
-    var = token.split(' ')
-    raise "Line #{@line}: Variable not a letter" if (letter var[1]).nil?
-    raise "Line #{@line}: Not an integer" unless var[2].to_i.is_a? Integer
-    var[2] = math token if var.count > 3
-    variable = Variables.new var[1].downcase, var[2]
-    @variables << variable
-    puts var[2]
-  end
-
-  def letter(var)
-    var == /[[:alpha:]]/
+    token[1] = CALC.math Active.to_num(@vars, token[1, token.size - 1]), @line
+    return nil if token[1].nil?
+    if !Active.active(@vars, token[0])
+      variable = Variables.new token[0].downcase, token[1].to_s
+      @vars << variable
+    else
+      Active.change_value(@vars, token[0], token[1])
+    end
+    puts token[1]
   end
 
   def print_line(token)
-    var = token.split(' ')
-    puts math token if var.count > 3
-    print_var token if var.count == 2
+    token = Active.to_num(@vars, token)
+    token = CALC.math(token, @line) if token.count > 1
+    puts token unless token.nil?
   end
 
-  def print_var(token)
-    var = token.split(' ')
-    puts var[2] unless var[2].nil?
-    x = get_var(var[1]) if var[1].to_i.is_a? Integer
-    puts x.value unless x == false
+  def quit(code)
+    exit(code)
   end
-
-  def get_var(variable)
-    @variables.each { |x| return x if x.var == variable.downcase }
-    puts "Line #{@line}: Variable not initialized" 
-    false
-  end
-
-  def math(token)
-    var = token.split(' ')
-    var[1] = (get_var var[1]).value unless letter var[1].nil?
-    var[2] = (get_var var[2]).value unless letter var[2].nil?
-    var[1] = var[1].to_i if (letter var[1]).nil?
-    var[2] = var[2].to_i if (letter var[2]).nil?
-    operator = var[3] if operator? var[3]
-    return addition var if operator == '+'
-    return subtraction var if operator == '-'
-    return multiplication var if operator == '*'
-    return division var if operator == '/'
-  end
-
-  def addition(var)
-    var[1].to_i + var[2].to_i
-  end
-
-  def subtraction(var)
-    var[1].to_i - var[2].to_i
-  end
-
-  def multiplication(var)
-    var[1].to_i * var[2].to_i
-  end
-
-  def division(var)
-    var[1].to_i / var[2].to_i
-  end
-
-  def operator?(var)
-    ops = ['+', '-', '*', '/']
-    ops.include?(var)
-  end
-
-  def quit
-    exit
-  end
-
 end
