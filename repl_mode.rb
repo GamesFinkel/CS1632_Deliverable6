@@ -11,7 +11,7 @@ class REPL
   attr_accessor :line
   def initialize
     @vars = []
-    @line = 0
+    @line = 1
   end
 
   def keyword(token)
@@ -64,10 +64,10 @@ class REPL
 
   def calculations
     loop do
-      @line += 1
       print '> '
       token = gets
       got_input token
+      @line += 1
     end
   end
 
