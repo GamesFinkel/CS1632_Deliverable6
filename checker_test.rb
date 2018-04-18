@@ -46,38 +46,44 @@ class CheckTest < Minitest::Test
     assert_equal val, " incorrect input 1.5"
   end
 
+  # Return true if the keyword input is valid
   def test_valid_keyword
-    assert_equal (@checker.keyword? "LET"), true
+    val = %w[LET QUIT PRINT]
+    val.each do |x|
+      assert_equal (@checker.keyword? x), true
+    end
   end
 
+  # Return false for incorrect keyword
   def test_invalid_keyword
     assert_equal (@checker.keyword? "DOO"), false
   end
 
-  def test_valid_letter
-    assert_equal (@checker.letter "q"), true
-  end
-
+  # Return false when something other than a letter is input
   def test_invalid_letter
     assert_equal (@checker.letter "1"), false
   end
 
+  # Return false if a keyword is found later in the statement
   def test_invalid_keyword_position
   	val = @checker.check_line "PRINT A 45 PRINT 45 +"
   	assert_equal val, false
   end
 
+  # The user should be told of any incorrect input
   def test_invalid_character
   	val = @checker.check_line "PRINT A 45 % 45 +"
   	assert_equal val, " incorrect input %"
   end
 
+  # Checking that program opens a file correctly
   def test_open_file
   	File.open('tester.out', 'w') { |file| file.write("tester") }
   	val = @checker.open_file 'tester.out'
   	assert_equal val, ["tester"]
   end
 
+  # Testing the entire alphabet as a kinf of property test
   def test_alphabet_var
     alphabet = %w[a b c d e f g h i j k l m n o p q r s t u v w x y z]
     alphabet.each do |x|
@@ -85,6 +91,7 @@ class CheckTest < Minitest::Test
     end
   end
 
+  # Property based testing
   def test_num_always_integer
     property_of {
       variable = integer
