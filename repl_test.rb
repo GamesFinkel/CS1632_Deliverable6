@@ -23,7 +23,7 @@ class REPLTest < Minitest::Test
 
   # This test verifies that if the input is blank, an error message is presented
   def test_got_input_blank
-    assert_output("Line 1: Could not evaluate expression\n") { @repl.got_input('') }
+    assert_output("") { @repl.got_input('') }
   end
 
   # This test verifies that inputting a single number results in that number being output

@@ -45,7 +45,7 @@ class REPL
 
   def got_input(token)
     # Error if token only contains \n
-    return Errorcode.error 5, @line, nil if token.size < 2
+    return nil if token.split.count.zero?
     tok_array = token.split
     # Error if there is a word after the first token
     return Errorcode.error 5, @line, nil if broken tok_array
