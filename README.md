@@ -3,6 +3,7 @@
 ### James Finkel
 ### Emery Chew
 
+## Requirements
 1. The program shall be named rpn.rb and should be runnable from the command line using the command ruby rpn.rb.
 2. Tokens shall be numbers, variable names, operators, or one of the keywords QUIT, LET, or PRINT.
 3. A number shall consist of one or more digits. All numbers shall be arbitrary-precision (i.e., there shall be no integer overflow - 999999999999999999999999999 shall be considered a valid number and stored as such).
